@@ -728,7 +728,8 @@
               </button>
             </div>
 
-            <div class="palette-title">対象のWebページURL</div>
+            <!-- URL読み込み方法 -->
+            <div class="palette-title">方法1: URLから取得</div>
             <div class="input-group">
               <input type="text" id="sim-url-input" class="input-text" placeholder="https://example.com">
               <button class="btn btn-primary" onclick="loadExternalURL()"><i class="fa-solid fa-magnifying-glass"></i> 読み込む</button>
@@ -737,6 +738,13 @@
               <span class="preset-chip" onclick="setPresetURL('https://example.com')">Example.com</span>
               <span class="preset-chip" onclick="setPresetURL('https://news.ycombinator.com')">HackerNews</span>
             </div>
+
+            <!-- HTML直貼り読み込み方法（自作GASアプリ・ログイン画面回避用） -->
+            <div class="palette-title" style="margin-top: 10px;">方法2: HTMLコード直貼り (自作アプリ用)</div>
+            <textarea id="sim-html-input" class="input-text" style="height: 70px; resize: vertical; font-family: monospace; font-size: 0.75rem;" placeholder="自作Webアプリやindex.htmlのコードを貼り付け..."></textarea>
+            <button class="btn btn-primary" style="width: 100%;" onclick="loadPastedHTML()">
+              <i class="fa-solid fa-code"></i> HTMLコードから解析表示
+            </button>
           </div>
 
           <div class="inspector-box" id="inspector-result-box" style="display: none;">
@@ -950,7 +958,6 @@
       document.getElementById('content-simulator').style.display = tab === 'simulator' ? 'block' : 'none';
     }
 
-    // シミュレーターの「操作モード」/「編集・抽出モード」切替
     function setSimulatorMode(mode) {
       simulatorMode = mode;
       document.getElementById('btn-sim-mode-interact').classList.toggle('active', mode === 'interact');
@@ -1259,6 +1266,7 @@
       loadExternalURL();
     }
 
+    // 方法1: URL経由での読み込み
     function loadExternalURL() {
       const url = document.getElementById('sim-url-input').value.trim();
       if (!url) return;
@@ -1273,59 +1281,35 @@
           .fetchExternalUrl(url);
       } else {
         simIframe.srcdoc = `<h2 style="font-family: sans-serif; padding: 20px;">GAS環境以外でのローカルプレビュー: ${url}</h2>`;
+        setupIframeInspectors();
       }
+    }
+
+    // 方法2: HTMLコード直貼り読み込み（ログイン画面保護回避用）
+    function loadPastedHTML() {
+      const htmlCode = document.getElementById('sim-html-input').value.trim();
+      if (!htmlCode) {
+        showToast("HTMLコードを入力してください");
+        return;
+      }
+
+      switchMainMode('simulator');
+      simIframe.srcdoc = htmlCode;
+      showToast("HTMLコードから表示しました！");
+      setupIframeInspectors();
     }
 
     function onUrlFetchedSuccess(res) {
       if (res.success) {
         simIframe.srcdoc = res.content;
-        showToast("Webページを表示しました！");
         
-        setTimeout(() => {
-          try {
-            const doc = simIframe.contentDocument || simIframe.contentWindow.document;
-
-            doc.addEventListener('mouseover', (e) => {
-              if (simulatorMode !== 'inspect') return;
-              if (lastHoveredElement && lastHoveredElement !== e.target) {
-                lastHoveredElement.style.outline = '';
-              }
-              lastHoveredElement = e.target;
-              lastHoveredElement.style.outline = '2px dashed #3b82f6';
-            });
-
-            doc.addEventListener('mouseout', (e) => {
-              if (simulatorMode !== 'inspect') return;
-              if (e.target) e.target.style.outline = '';
-            });
-
-            doc.addEventListener('click', (e) => {
-              if (simulatorMode === 'interact') {
-                // 操作モード時は通常のリンク遷移・ボタン操作を許可
-                return;
-              }
-
-              // 編集・抽出モード時はクリックイベントを横取りして解析
-              e.preventDefault();
-              e.stopPropagation();
-              const el = e.target;
-              inspectedElementData = {
-                tag: el.tagName.toLowerCase(),
-                className: el.className || 'なし',
-                text: el.innerText ? el.innerText.trim().slice(0, 50) : 'テキストなし',
-                bgColor: getComputedStyle(el).backgroundColor,
-                color: getComputedStyle(el).color
-              };
-              
-              document.getElementById('inspector-result-box').style.display = 'block';
-              document.getElementById('insp-tag').innerText = inspectedElementData.tag;
-              document.getElementById('insp-class').innerText = inspectedElementData.className;
-              document.getElementById('insp-text').innerText = inspectedElementData.text;
-            });
-          } catch(err) {
-            console.log("Iframe inspect limited: " + err);
-          }
-        }, 500);
+        if (res.isGoogleAuth) {
+          showToast("⚠️ Googleログイン保護されたページです。下の『HTML直貼り』を使うとログイン不要で解析可能です！");
+        } else {
+          showToast("Webページを表示しました！");
+        }
+        
+        setupIframeInspectors();
       } else {
         showToast(res.message);
       }
@@ -1333,6 +1317,50 @@
 
     function onUrlFetchError(err) {
       showToast("エラー: " + err.message);
+    }
+
+    function setupIframeInspectors() {
+      setTimeout(() => {
+        try {
+          const doc = simIframe.contentDocument || simIframe.contentWindow.document;
+
+          doc.addEventListener('mouseover', (e) => {
+            if (simulatorMode !== 'inspect') return;
+            if (lastHoveredElement && lastHoveredElement !== e.target) {
+              lastHoveredElement.style.outline = '';
+            }
+            lastHoveredElement = e.target;
+            lastHoveredElement.style.outline = '2px dashed #3b82f6';
+          });
+
+          doc.addEventListener('mouseout', (e) => {
+            if (simulatorMode !== 'inspect') return;
+            if (e.target) e.target.style.outline = '';
+          });
+
+          doc.addEventListener('click', (e) => {
+            if (simulatorMode === 'interact') return;
+
+            e.preventDefault();
+            e.stopPropagation();
+            const el = e.target;
+            inspectedElementData = {
+              tag: el.tagName.toLowerCase(),
+              className: el.className || 'なし',
+              text: el.innerText ? el.innerText.trim().slice(0, 50) : 'テキストなし',
+              bgColor: getComputedStyle(el).backgroundColor,
+              color: getComputedStyle(el).color
+            };
+            
+            document.getElementById('inspector-result-box').style.display = 'block';
+            document.getElementById('insp-tag').innerText = inspectedElementData.tag;
+            document.getElementById('insp-class').innerText = inspectedElementData.className;
+            document.getElementById('insp-text').innerText = inspectedElementData.text;
+          });
+        } catch(err) {
+          console.log("Iframe inspect limited: " + err);
+        }
+      }, 500);
     }
 
     function importInspectedToCanvas() {

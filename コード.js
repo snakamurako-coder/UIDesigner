@@ -40,6 +40,9 @@ function fetchExternalUrl(targetUrl) {
     const responseCode = response.getResponseCode();
     let content = response.getContentText('UTF-8');
     
+    // Googleログイン保護画面の検出
+    const isGoogleAuth = content.includes('accounts.google.com') || content.includes('ServiceLogin') || content.includes('accounts.youtube.com');
+
     // スクリプトタグの無効化（安全対策および実行エラー防止）
     content = content.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '');
     
@@ -52,6 +55,7 @@ function fetchExternalUrl(targetUrl) {
       success: true,
       url: url,
       statusCode: responseCode,
+      isGoogleAuth: isGoogleAuth,
       content: content
     };
   } catch (error) {
