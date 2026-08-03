@@ -12,7 +12,7 @@
 
   <style>
     /* ==========================================
-       1. Global Reset & Dark Theme Tokens
+       1. Global Reset & GAS Frame Compatibility
        ========================================== */
     :root {
       --bg-dark: #0b0f19;
@@ -28,24 +28,24 @@
       --text-muted: #9ca3af;
       --text-dim: #6b7280;
       --canvas-bg: #0f172a;
-      --shadow-lg: 0 10px 25px -5px rgba(0, 0, 0, 0.5), 0 8px 10px -6px rgba(0, 0, 0, 0.3);
+      --shadow-lg: 0 10px 25px -5px rgba(0, 0, 0, 0.5);
     }
 
-    * {
-      box-sizing: border-box;
+    html, body {
+      width: 100%;
+      height: 100vh;
       margin: 0;
       padding: 0;
+      overflow: hidden;
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      background-color: var(--bg-dark);
+      color: var(--text-main);
+      user-select: none;
     }
 
     body {
-      font-family: 'Inter', sans-serif;
-      background-color: var(--bg-dark);
-      color: var(--text-main);
-      height: 100vh;
       display: flex;
       flex-direction: column;
-      overflow: hidden;
-      user-select: none;
     }
 
     /* ==========================================
@@ -53,39 +53,32 @@
        ========================================== */
     header {
       height: 60px;
-      background: rgba(17, 24, 39, 0.95);
-      backdrop-filter: blur(10px);
+      min-height: 60px;
+      background: #111827;
       border-bottom: 1px solid var(--border-color);
       display: flex;
       align-items: center;
       justify-content: space-between;
       padding: 0 20px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
       z-index: 100;
     }
 
     .brand {
       display: flex;
       align-items: center;
-      gap: 12px;
+      gap: 10px;
       font-family: 'Outfit', sans-serif;
       font-weight: 700;
-      font-size: 1.2rem;
-      background: linear-gradient(135deg, #60a5fa, #c084fc, #f472b6);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-    }
-
-    .brand i {
-      -webkit-text-fill-color: initial;
+      font-size: 1.15rem;
       color: #60a5fa;
-      font-size: 1.4rem;
     }
 
     .view-mode-tabs {
       display: flex;
       background-color: var(--bg-card);
       border-radius: 8px;
-      padding: 4px;
+      padding: 3px;
       gap: 4px;
       border: 1px solid var(--border-color);
     }
@@ -94,34 +87,32 @@
       background: transparent;
       border: none;
       color: var(--text-muted);
-      padding: 8px 16px;
+      padding: 6px 14px;
       border-radius: 6px;
       font-size: 0.85rem;
-      font-weight: 500;
+      font-weight: 600;
       cursor: pointer;
       display: flex;
       align-items: center;
-      gap: 8px;
-      transition: all 0.2s ease;
+      gap: 6px;
+      transition: all 0.2s;
     }
 
     .mode-tab-btn:hover {
       color: var(--text-main);
-      background: rgba(255, 255, 255, 0.05);
     }
 
     .mode-tab-btn.active {
       background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple));
       color: #ffffff;
-      box-shadow: 0 2px 8px rgba(59, 130, 246, 0.4);
     }
 
     .viewport-controls {
       display: flex;
       align-items: center;
-      gap: 6px;
+      gap: 4px;
       background: var(--bg-card);
-      padding: 4px 8px;
+      padding: 3px 6px;
       border-radius: 8px;
       border: 1px solid var(--border-color);
     }
@@ -134,7 +125,6 @@
       border-radius: 4px;
       cursor: pointer;
       font-size: 0.8rem;
-      transition: all 0.2s;
     }
 
     .device-btn:hover, .device-btn.active {
@@ -145,14 +135,14 @@
     .header-actions {
       display: flex;
       align-items: center;
-      gap: 10px;
+      gap: 8px;
     }
 
     .btn {
       background: var(--bg-card);
       color: var(--text-main);
       border: 1px solid var(--border-color);
-      padding: 8px 14px;
+      padding: 7px 12px;
       border-radius: 6px;
       font-size: 0.85rem;
       font-weight: 500;
@@ -160,54 +150,48 @@
       display: inline-flex;
       align-items: center;
       gap: 6px;
-      transition: all 0.2s;
     }
 
     .btn:hover {
       background: var(--bg-input);
-      border-color: #4b5563;
     }
 
     .btn-primary {
       background: linear-gradient(135deg, var(--accent-blue), #2563eb);
       border: none;
       color: white;
-      box-shadow: 0 2px 8px rgba(37, 99, 235, 0.3);
-    }
-
-    .btn-primary:hover {
-      background: linear-gradient(135deg, #2563eb, #1d4ed8);
     }
 
     .btn-export {
       background: linear-gradient(135deg, var(--accent-purple), var(--accent-pink));
       border: none;
       color: white;
-      box-shadow: 0 2px 8px rgba(139, 92, 246, 0.3);
-    }
-
-    .btn-export:hover {
-      opacity: 0.9;
     }
 
     /* ==========================================
        3. Main App Workspace Layout (3 Columns)
        ========================================== */
     .app-workspace {
+      height: calc(100vh - 60px);
+      width: 100%;
       flex: 1;
+      min-height: 0;
       display: flex;
       overflow: hidden;
       position: relative;
     }
 
-    /* Sidebar (Left) */
+    /* Left Sidebar */
     .sidebar-left {
-      width: 300px;
+      width: 280px;
+      min-width: 280px;
+      height: 100%;
       background: var(--bg-panel);
       border-right: 1px solid var(--border-color);
       display: flex;
       flex-direction: column;
-      z-index: 20;
+      overflow: hidden;
+      flex-shrink: 0;
     }
 
     .sidebar-tabs {
@@ -225,7 +209,6 @@
       color: var(--text-muted);
       cursor: pointer;
       border-bottom: 2px solid transparent;
-      transition: all 0.2s;
     }
 
     .sidebar-tab.active {
@@ -238,6 +221,7 @@
       flex: 1;
       overflow-y: auto;
       padding: 16px;
+      min-height: 0;
     }
 
     .palette-section {
@@ -256,37 +240,35 @@
     .palette-grid {
       display: grid;
       grid-template-columns: repeat(2, 1fr);
-      gap: 10px;
+      gap: 8px;
     }
 
     .palette-item {
       background: var(--bg-card);
       border: 1px solid var(--border-color);
       border-radius: 8px;
-      padding: 12px 10px;
+      padding: 10px;
       display: flex;
       flex-direction: column;
       align-items: center;
       gap: 6px;
-      font-size: 0.8rem;
+      font-size: 0.75rem;
       color: var(--text-muted);
       cursor: grab;
-      transition: all 0.2s;
+      text-align: center;
     }
 
     .palette-item:hover {
       border-color: var(--accent-blue);
       color: var(--text-main);
-      transform: translateY(-2px);
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
     }
 
     .palette-item i {
-      font-size: 1.2rem;
+      font-size: 1.1rem;
       color: var(--accent-blue);
     }
 
-    /* Simulator Panel (Left Tab 2) */
+    /* Simulator Panel */
     .simulator-controls {
       display: flex;
       flex-direction: column;
@@ -304,20 +286,10 @@
       background: var(--bg-card);
       border: 1px solid var(--border-color);
       border-radius: 6px;
-      padding: 8px 12px;
+      padding: 8px 10px;
       color: var(--text-main);
       font-size: 0.85rem;
       outline: none;
-    }
-
-    .input-text:focus {
-      border-color: var(--accent-blue);
-    }
-
-    .simulator-presets {
-      display: flex;
-      gap: 6px;
-      flex-wrap: wrap;
     }
 
     .preset-chip {
@@ -328,12 +300,6 @@
       padding: 4px 8px;
       border-radius: 4px;
       cursor: pointer;
-      transition: all 0.2s;
-    }
-
-    .preset-chip:hover {
-      border-color: var(--accent-purple);
-      color: var(--text-main);
     }
 
     .inspector-box {
@@ -342,12 +308,6 @@
       border-radius: 8px;
       padding: 12px;
       margin-top: 10px;
-    }
-
-    .inspector-box h4 {
-      font-size: 0.85rem;
-      color: var(--accent-purple);
-      margin-bottom: 8px;
     }
 
     .element-info-row {
@@ -365,13 +325,16 @@
     /* Center Canvas Area */
     .canvas-viewport-wrapper {
       flex: 1;
+      height: 100%;
+      min-width: 0;
+      min-height: 0;
       background: var(--canvas-bg);
-      background-image: radial-gradient(rgba(255, 255, 255, 0.07) 1px, transparent 1px);
-      background-size: 24px 24px;
+      background-image: radial-gradient(rgba(255, 255, 255, 0.08) 1px, transparent 1px);
+      background-size: 20px 20px;
       display: flex;
       justify-content: center;
       align-items: flex-start;
-      padding: 40px 20px;
+      padding: 40px;
       overflow: auto;
       position: relative;
     }
@@ -379,21 +342,20 @@
     #visual-canvas {
       background: #ffffff;
       color: #1f2937;
-      min-height: 700px;
+      min-height: 750px;
       width: 1000px;
       border-radius: 8px;
       box-shadow: var(--shadow-lg);
       position: relative;
-      transition: width 0.3s ease;
-      overflow: hidden;
+      transition: width 0.2s ease;
+      overflow: visible;
     }
 
-    /* Canvas Element Overlay & Handles */
+    /* Canvas Element Styling */
     .canvas-el {
       position: absolute;
       box-sizing: border-box;
       user-select: none;
-      transition: outline 0.15s ease;
       outline: 1px dashed transparent;
     }
 
@@ -426,22 +388,18 @@
     .handle-ne { top: -5px; right: -5px; cursor: nesw-resize; }
     .handle-sw { bottom: -5px; left: -5px; cursor: nesw-resize; }
     .handle-se { bottom: -5px; right: -5px; cursor: nwse-resize; }
-    .handle-n { top: -5px; left: 50%; transform: translateX(-50%); cursor: ns-resize; }
-    .handle-s { bottom: -5px; left: 50%; transform: translateX(-50%); cursor: ns-resize; }
-    .handle-w { top: 50%; left: -5px; transform: translateY(-50%); cursor: ew-resize; }
-    .handle-e { top: 50%; right: -5px; transform: translateY(-50%); cursor: ew-resize; }
 
-    /* Element Floating Action Bar */
+    /* Floating Toolbar */
     .floating-toolbar {
       position: absolute;
-      top: -36px;
+      top: -34px;
       left: 0;
       background: #1e293b;
       border-radius: 6px;
-      padding: 4px 8px;
+      padding: 3px 6px;
       display: flex;
       gap: 6px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+      box-shadow: 0 4px 10px rgba(0,0,0,0.4);
       z-index: 1001;
       display: none;
     }
@@ -465,7 +423,7 @@
       background: #334155;
     }
 
-    /* Browser Simulator Frame View */
+    /* Simulator View */
     #simulator-frame-container {
       display: none;
       width: 100%;
@@ -473,30 +431,31 @@
       background: #ffffff;
       border-radius: 8px;
       overflow: hidden;
-      position: relative;
     }
 
     #simulator-iframe-host {
       width: 100%;
       height: 100%;
       border: none;
-      background: #ffffff;
     }
 
-    /* Right Sidebar (Properties Panel) */
+    /* Right Sidebar (Properties) */
     .sidebar-right {
-      width: 320px;
+      width: 300px;
+      min-width: 300px;
+      height: 100%;
       background: var(--bg-panel);
       border-left: 1px solid var(--border-color);
       display: flex;
       flex-direction: column;
-      z-index: 20;
+      overflow: hidden;
+      flex-shrink: 0;
     }
 
     .prop-header {
-      padding: 16px;
+      padding: 14px 16px;
       border-bottom: 1px solid var(--border-color);
-      font-size: 0.9rem;
+      font-size: 0.85rem;
       font-weight: 700;
       color: var(--text-main);
       display: flex;
@@ -508,10 +467,11 @@
       flex: 1;
       overflow-y: auto;
       padding: 16px;
+      min-height: 0;
     }
 
     .prop-group {
-      margin-bottom: 16px;
+      margin-bottom: 14px;
     }
 
     .prop-label {
@@ -519,12 +479,12 @@
       font-size: 0.75rem;
       font-weight: 600;
       color: var(--text-muted);
-      margin-bottom: 6px;
+      margin-bottom: 5px;
     }
 
     .prop-row {
       display: flex;
-      gap: 8px;
+      gap: 6px;
     }
 
     .prop-input {
@@ -538,10 +498,6 @@
       outline: none;
     }
 
-    .prop-input:focus {
-      border-color: var(--accent-blue);
-    }
-
     .prop-color-picker {
       width: 100%;
       height: 34px;
@@ -552,9 +508,7 @@
       padding: 2px;
     }
 
-    /* ==========================================
-       4. Output & Modal Component
-       ========================================== */
+    /* Modal Component */
     .modal-overlay {
       position: fixed;
       inset: 0;
@@ -567,9 +521,9 @@
     }
 
     .modal-card {
-      width: 850px;
+      width: 800px;
       max-width: 90vw;
-      height: 80vh;
+      height: 75vh;
       background: var(--bg-panel);
       border: 1px solid var(--border-color);
       border-radius: 12px;
@@ -580,7 +534,7 @@
     }
 
     .modal-header {
-      padding: 16px 20px;
+      padding: 14px 20px;
       border-bottom: 1px solid var(--border-color);
       display: flex;
       justify-content: space-between;
@@ -589,7 +543,7 @@
 
     .modal-tabs {
       display: flex;
-      gap: 10px;
+      gap: 8px;
     }
 
     .modal-tab-btn {
@@ -598,7 +552,7 @@
       color: var(--text-muted);
       font-size: 0.85rem;
       font-weight: 600;
-      padding: 8px 16px;
+      padding: 6px 14px;
       border-radius: 6px;
       cursor: pointer;
     }
@@ -610,7 +564,7 @@
 
     .modal-body {
       flex: 1;
-      padding: 20px;
+      padding: 16px;
       overflow-y: auto;
       background: var(--bg-dark);
     }
@@ -622,7 +576,7 @@
       color: #e2e8f0;
       font-family: monospace;
       font-size: 0.85rem;
-      padding: 16px;
+      padding: 14px;
       border-radius: 8px;
       border: 1px solid var(--border-color);
       white-space: pre-wrap;
@@ -630,7 +584,7 @@
       resize: none;
     }
 
-    /* Notification Toast */
+    /* Toast Notification */
     .toast {
       position: fixed;
       bottom: 20px;
@@ -638,13 +592,13 @@
       background: var(--bg-card);
       border: 1px solid var(--accent-blue);
       color: var(--text-main);
-      padding: 12px 20px;
+      padding: 10px 18px;
       border-radius: 8px;
       box-shadow: var(--shadow-lg);
       display: flex;
       align-items: center;
       gap: 10px;
-      font-size: 0.9rem;
+      font-size: 0.85rem;
       transform: translateY(100px);
       opacity: 0;
       transition: all 0.3s ease;
@@ -659,9 +613,7 @@
 </head>
 <body>
 
-  <!-- ==========================================
-       Header Navigation
-       ========================================== -->
+  <!-- Header Bar -->
   <header>
     <div class="brand">
       <i class="fa-solid fa-wand-magic-sparkles"></i>
@@ -694,20 +646,18 @@
     </div>
   </header>
 
-  <!-- ==========================================
-       Main Workspace
-       ========================================== -->
+  <!-- Main Workspace (3 Columns) -->
   <div class="app-workspace">
     
     <!-- Left Sidebar -->
     <div class="sidebar-left">
       <div class="sidebar-tabs">
         <div class="sidebar-tab active" id="tab-palette" onclick="switchLeftTab('palette')"><i class="fa-solid fa-cubes"></i> UI Parts</div>
-        <div class="sidebar-tab" id="tab-simulator" onclick="switchLeftTab('simulator')"><i class="fa-solid fa-compass"></i> URL Inspector</div>
+        <div class="sidebar-tab" id="tab-simulator" onclick="switchLeftTab('simulator')"><i class="fa-solid fa-compass"></i> Inspector</div>
       </div>
 
       <div class="sidebar-content">
-        <!-- Palette Tab Content -->
+        <!-- Palette Tab -->
         <div id="content-palette">
           <div class="palette-section">
             <div class="palette-title">Layout Containers</div>
@@ -716,7 +666,7 @@
                 <i class="fa-solid fa-window-maximize"></i> Header Nav
               </div>
               <div class="palette-item" draggable="true" data-type="hero">
-                <i class="fa-solid fa-sparkles"></i> Hero Section
+                <i class="fa-solid fa-sparkles"></i> Hero Banner
               </div>
               <div class="palette-item" draggable="true" data-type="card">
                 <i class="fa-solid fa-id-card"></i> Card Container
@@ -746,13 +696,13 @@
                 <i class="fa-solid fa-tag"></i> Badge / Pill
               </div>
               <div class="palette-item" draggable="true" data-type="image">
-                <i class="fa-solid fa-image"></i> Image Placeholder
+                <i class="fa-solid fa-image"></i> Image Box
               </div>
             </div>
           </div>
         </div>
 
-        <!-- Simulator Inspector Tab Content -->
+        <!-- Simulator Inspector Tab -->
         <div id="content-simulator" style="display: none;">
           <div class="simulator-controls">
             <div class="palette-title">Target Web Page URL</div>
@@ -760,14 +710,14 @@
               <input type="text" id="sim-url-input" class="input-text" placeholder="https://example.com">
               <button class="btn btn-primary" onclick="loadExternalURL()"><i class="fa-solid fa-magnifying-glass"></i> Load</button>
             </div>
-            <div class="simulator-presets">
+            <div style="display: flex; gap: 6px; flex-wrap: wrap;">
               <span class="preset-chip" onclick="setPresetURL('https://example.com')">Example.com</span>
               <span class="preset-chip" onclick="setPresetURL('https://news.ycombinator.com')">HackerNews</span>
             </div>
           </div>
 
           <div class="inspector-box" id="inspector-result-box" style="display: none;">
-            <h4><i class="fa-solid fa-crosshairs"></i> Inspected Element</h4>
+            <h4 style="font-size: 0.85rem; color: var(--accent-purple); margin-bottom: 8px;"><i class="fa-solid fa-crosshairs"></i> Inspected Element</h4>
             <div class="element-info-row">Tag: <span id="insp-tag">-</span></div>
             <div class="element-info-row">Class: <span id="insp-class">-</span></div>
             <div class="element-info-row">Text: <span id="insp-text">-</span></div>
@@ -782,9 +732,9 @@
     <!-- Center Canvas Area -->
     <div class="canvas-viewport-wrapper">
       
-      <!-- Canvas Mode View -->
+      <!-- Visual Canvas -->
       <div id="visual-canvas">
-        <!-- Elements created dynamically -->
+        <!-- Dynamic canvas elements -->
       </div>
 
       <!-- Simulator View Frame -->
@@ -849,9 +799,7 @@
 
   </div>
 
-  <!-- ==========================================
-       Output & Export Modal for IDE
-       ========================================== -->
+  <!-- Output Modal -->
   <div class="modal-overlay" id="export-modal">
     <div class="modal-card">
       <div class="modal-header">
@@ -886,11 +834,8 @@
     <span id="toast-text">通知メッセージ</span>
   </div>
 
-  <!-- ==========================================
-       JavaScript Logic
-       ========================================== -->
+  <!-- App Script Logic -->
   <script>
-    // State management variables
     const canvas = document.getElementById('visual-canvas');
     const simFrameContainer = document.getElementById('simulator-frame-container');
     const simIframe = document.getElementById('simulator-iframe-host');
@@ -910,7 +855,6 @@
 
     let inspectedElementData = null;
 
-    // Default Initial Canvas Layout Setup
     window.addEventListener('DOMContentLoaded', () => {
       setupDragAndDrop();
       createDefaultLayout();
@@ -918,23 +862,26 @@
 
     function createDefaultLayout() {
       const header = createElement('header', 20, 20, 960, 70);
-      header.querySelector('.canvas-text-node').innerText = '✨ Brand Logo & Navigation Header';
+      const headerText = header.querySelector('.canvas-text-node');
+      if (headerText) headerText.innerText = '✨ Brand Logo & Navigation Header';
       header.style.backgroundColor = '#1e293b';
       header.style.color = '#ffffff';
 
       const hero = createElement('hero', 20, 100, 960, 220);
-      hero.querySelector('.canvas-text-node').innerText = '🚀 Welcome to Modern UI Designer';
+      const heroText = hero.querySelector('.canvas-text-node');
+      if (heroText) heroText.innerText = '🚀 Welcome to Modern UI Designer';
       hero.style.backgroundColor = '#3b82f6';
       hero.style.color = '#ffffff';
 
       const card1 = createElement('card', 20, 340, 470, 200);
-      card1.querySelector('.canvas-text-node').innerText = '📦 Feature Card 1';
+      const card1Text = card1.querySelector('.canvas-text-node');
+      if (card1Text) card1Text.innerText = '📦 Feature Card 1';
       
       const card2 = createElement('card', 510, 340, 470, 200);
-      card2.querySelector('.canvas-text-node').innerText = '⚡ Feature Card 2';
+      const card2Text = card2.querySelector('.canvas-text-node');
+      if (card2Text) card2Text.innerText = '⚡ Feature Card 2';
     }
 
-    // Main Mode Switcher (Canvas / Simulator)
     function switchMainMode(mode) {
       document.getElementById('btn-mode-canvas').classList.toggle('active', mode === 'canvas');
       document.getElementById('btn-mode-simulator').classList.toggle('active', mode === 'simulator');
@@ -948,17 +895,15 @@
       }
     }
 
-    // Viewport Width Preset Switcher
     function setViewport(device) {
       document.querySelectorAll('.device-btn').forEach(b => b.classList.remove('active'));
-      event.currentTarget.classList.add('active');
+      if (event && event.currentTarget) event.currentTarget.classList.add('active');
 
       if (device === 'desktop') canvas.style.width = '1000px';
       else if (device === 'tablet') canvas.style.width = '768px';
       else if (device === 'mobile') canvas.style.width = '375px';
     }
 
-    // Left Sidebar Tab Switcher
     function switchLeftTab(tab) {
       document.getElementById('tab-palette').classList.toggle('active', tab === 'palette');
       document.getElementById('tab-simulator').classList.toggle('active', tab === 'simulator');
@@ -966,7 +911,6 @@
       document.getElementById('content-simulator').style.display = tab === 'simulator' ? 'block' : 'none';
     }
 
-    // Drag and Drop Palette Elements
     function setupDragAndDrop() {
       const paletteItems = document.querySelectorAll('.palette-item');
       paletteItems.forEach(item => {
@@ -987,7 +931,6 @@
       });
     }
 
-    // Factory: Create Canvas Element
     function createElement(type, x, y, width = 200, height = 80) {
       const el = document.createElement('div');
       el.classList.add('canvas-el');
@@ -1003,7 +946,6 @@
       el.style.alignItems = 'center';
       el.style.justifyContent = 'center';
 
-      // Type specific defaults
       let innerHTML = '';
       if (type === 'button') {
         el.style.backgroundColor = '#3b82f6';
@@ -1020,7 +962,7 @@
       } else if (type === 'hero') {
         el.style.backgroundColor = '#8b5cf6';
         el.style.color = '#ffffff';
-        innerHTML = `<span class="canvas-text-node">🚀 Hero Title & CTA Banner</span>`;
+        innerHTML = `<span class="canvas-text-node">🚀 Hero Banner Title</span>`;
       } else if (type === 'badge') {
         el.style.backgroundColor = '#10b981';
         el.style.color = '#ffffff';
@@ -1035,7 +977,6 @@
         innerHTML = `<span class="canvas-text-node">${type.toUpperCase()} Component</span>`;
       }
 
-      // Add Resize Handles & Toolbar
       el.innerHTML = innerHTML + `
         <div class="floating-toolbar">
           <button class="floating-tool-btn" onclick="duplicateSelected()"><i class="fa-solid fa-copy"></i></button>
@@ -1047,7 +988,6 @@
         <div class="resize-handle handle-se" data-handle="se"></div>
       `;
 
-      // Event listeners for dragging & resizing
       el.addEventListener('mousedown', (e) => {
         if (e.target.classList.contains('resize-handle')) {
           startResizing(e, el, e.target.dataset.handle);
@@ -1062,7 +1002,6 @@
       return el;
     }
 
-    // Element Selection & Property Panel Sync
     function selectElement(el) {
       if (selectedElement) selectedElement.classList.remove('selected');
       selectedElement = el;
@@ -1073,7 +1012,6 @@
       document.getElementById('prop-controls-form').style.display = 'block';
       document.getElementById('selected-type-badge').innerText = el.dataset.type.toUpperCase();
 
-      // Sync form fields
       const textNode = el.querySelector('.canvas-text-node');
       document.getElementById('prop-text-input').value = textNode ? textNode.innerText : '';
       document.getElementById('prop-width').value = parseInt(el.style.width) || el.offsetWidth;
@@ -1095,7 +1033,6 @@
       }
     });
 
-    // Update Property from Inspector Form
     function updateSelectedProp(key, value) {
       if (!selectedElement) return;
       const textNode = selectedElement.querySelector('.canvas-text-node');
@@ -1110,7 +1047,6 @@
       else if (key === 'padding') selectedElement.style.padding = `${value}px`;
     }
 
-    // Dragging Logic
     function startDragging(e, el) {
       e.stopPropagation();
       isDragging = true;
@@ -1119,7 +1055,6 @@
       dragOffsetY = e.clientY - rect.top;
     }
 
-    // Resizing Logic
     function startResizing(e, el, handle) {
       e.stopPropagation();
       isResizing = true;
@@ -1168,7 +1103,6 @@
           }
         }
 
-        // Sync sizes back to panel
         document.getElementById('prop-width').value = selectedElement.offsetWidth;
         document.getElementById('prop-height').value = selectedElement.offsetHeight;
       }
@@ -1206,9 +1140,6 @@
       showToast("キャンバスをクリアしました");
     }
 
-    // ==========================================
-    // Simulator & External Web Page Proxy
-    // ==========================================
     function setPresetURL(url) {
       document.getElementById('sim-url-input').value = url;
       loadExternalURL();
@@ -1227,7 +1158,6 @@
           .withFailureHandler(onUrlFetchError)
           .fetchExternalUrl(url);
       } else {
-        // Fallback for local testing
         simIframe.srcdoc = `<h2 style="font-family: sans-serif; padding: 20px;">GAS環境以外でのローカルプレビュー: ${url}</h2>`;
       }
     }
@@ -1237,7 +1167,6 @@
         simIframe.srcdoc = res.content;
         showToast("Webページを表示しました！");
         
-        // Setup Inspector listener inside iframe
         setTimeout(() => {
           try {
             const doc = simIframe.contentDocument || simIframe.contentWindow.document;
@@ -1282,9 +1211,6 @@
       switchMainMode('canvas');
     }
 
-    // ==========================================
-    // Save & Load State with GAS PropertiesService
-    // ==========================================
     function saveLayoutToGAS() {
       const elementsData = [];
       document.querySelectorAll('.canvas-el').forEach(el => {
@@ -1340,9 +1266,6 @@
       showToast("レイアウトを復元しました！");
     }
 
-    // ==========================================
-    // Output Generator for IDE Prompting
-    // ==========================================
     function openExportModal() {
       document.getElementById('export-modal').style.display = 'flex';
       switchModalTab('prompt');
@@ -1430,7 +1353,6 @@
       showToast("クリップボードにコピーしました！");
     }
 
-    // Helper functions
     function rgbToHex(rgbStr) {
       if (!rgbStr) return '#ffffff';
       if (rgbStr.startsWith('#')) return rgbStr;
