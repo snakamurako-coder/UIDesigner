@@ -347,7 +347,8 @@
       border-radius: 8px;
       box-shadow: var(--shadow-lg);
       position: relative;
-      transition: width 0.2s ease;
+      transition: transform 0.2s ease, width 0.2s ease;
+      transform-origin: top center;
       overflow: visible;
     }
 
@@ -634,11 +635,21 @@
       </button>
     </div>
 
-    <!-- ビューポートデバイス切替 -->
-    <div class="viewport-controls">
-      <button class="device-btn active" onclick="setViewport('desktop')"><i class="fa-solid fa-desktop"></i> デスクトップ</button>
-      <button class="device-btn" onclick="setViewport('tablet')"><i class="fa-solid fa-tablet-screen-button"></i> タブレット</button>
-      <button class="device-btn" onclick="setViewport('mobile')"><i class="fa-solid fa-mobile-screen-button"></i> モバイル</button>
+    <!-- ビューポートデバイス切替 & ズーム倍率コントロール -->
+    <div style="display: flex; gap: 8px;">
+      <div class="viewport-controls">
+        <button class="device-btn active" onclick="setViewport('desktop')"><i class="fa-solid fa-desktop"></i> デスクトップ</button>
+        <button class="device-btn" onclick="setViewport('tablet')"><i class="fa-solid fa-tablet-screen-button"></i> タブレット</button>
+        <button class="device-btn" onclick="setViewport('mobile')"><i class="fa-solid fa-mobile-screen-button"></i> モバイル</button>
+      </div>
+
+      <!-- 拡大率コントロール -->
+      <div class="viewport-controls">
+        <button class="device-btn" onclick="zoomCanvas(-0.1)" title="縮小"><i class="fa-solid fa-magnifying-glass-minus"></i></button>
+        <span id="zoom-level-label" style="font-size: 0.8rem; font-weight: 600; padding: 0 4px; min-width: 42px; text-align: center; color: var(--text-main);">100%</span>
+        <button class="device-btn" onclick="zoomCanvas(0.1)" title="拡大"><i class="fa-solid fa-magnifying-glass-plus"></i></button>
+        <button class="device-btn" onclick="resetZoom()" title="倍率リセット">100%</button>
+      </div>
     </div>
 
     <!-- アクションボタン群 -->
@@ -728,6 +739,11 @@
               </button>
             </div>
 
+            <!-- ホールクローン（Whole Clone）機能ボタン -->
+            <button class="btn btn-export" style="width: 100%; margin-bottom: 10px; padding: 10px; font-weight: 700; background: linear-gradient(135deg, #8b5cf6, #ec4899);" onclick="wholeCloneToCanvas()">
+              <i class="fa-solid fa-wand-magic-sparkles"></i> ✨ ホールクローン (全複製)
+            </button>
+
             <!-- URL読み込み方法 -->
             <div class="palette-title">方法1: URLから取得</div>
             <div class="input-group">
@@ -783,7 +799,7 @@
 
       <div class="prop-content">
         <div id="no-prop-selected" style="color: var(--text-dim); text-align: center; margin-top: 40px; font-size: 0.85rem;">
-          キャンバス上の要素を選択してください
+          キャンバス上の要素を選択してください<br><span style="font-size: 0.75rem; color: var(--text-dim); margin-top: 6px; display: inline-block;">(DelキーまたはBackspaceで削除可能)</span>
         </div>
 
         <div id="prop-controls-form" style="display: none;">
@@ -893,13 +909,51 @@
     let startMouseY = 0;
 
     let inspectedElementData = null;
-    let simulatorMode = 'interact'; // 'interact' or 'inspect'
+    let simulatorMode = 'interact';
     let lastHoveredElement = null;
+    let currentZoom = 1.0;
 
     window.addEventListener('DOMContentLoaded', () => {
       setupDragAndDrop();
+      setupKeyboardShortcuts();
       createDefaultLayout();
     });
+
+    // キーボードショートカット (① 選択状態でDel/Backspaceキーでオブジェクト削除)
+    function setupKeyboardShortcuts() {
+      document.addEventListener('keydown', (e) => {
+        const activeEl = document.activeElement;
+        const isTyping = activeEl && (
+          activeEl.tagName === 'INPUT' || 
+          activeEl.tagName === 'TEXTAREA' || 
+          activeEl.isContentEditable ||
+          activeEl.classList.contains('input-text')
+        );
+
+        if ((e.key === 'Delete' || e.key === 'Backspace') && selectedElement && !isTyping) {
+          e.preventDefault();
+          deleteSelected();
+          showToast("選択したオブジェクトを削除しました (Del)");
+        }
+      });
+    }
+
+    // ② 拡大率ズーム調整コントロール
+    function zoomCanvas(delta) {
+      currentZoom = Math.min(2.0, Math.max(0.3, currentZoom + delta));
+      applyCanvasZoom();
+    }
+
+    function resetZoom() {
+      currentZoom = 1.0;
+      applyCanvasZoom();
+    }
+
+    function applyCanvasZoom() {
+      document.getElementById('zoom-level-label').innerText = `${Math.round(currentZoom * 100)}%`;
+      canvas.style.transform = `scale(${currentZoom})`;
+      canvas.style.transformOrigin = 'top center';
+    }
 
     function createDefaultLayout() {
       const header = createElement('header', 20, 20, 960, 70);
@@ -995,8 +1049,8 @@
         const type = e.dataTransfer.getData('type');
         if (!type) return;
         const rect = canvas.getBoundingClientRect();
-        const x = Math.max(0, e.clientX - rect.left);
-        const y = Math.max(0, e.clientY - rect.top);
+        const x = Math.max(0, (e.clientX - rect.left) / currentZoom);
+        const y = Math.max(0, (e.clientY - rect.top) / currentZoom);
         createElement(type, x, y);
       });
     }
@@ -1171,8 +1225,8 @@
       e.stopPropagation();
       isDragging = true;
       const rect = el.getBoundingClientRect();
-      dragOffsetX = e.clientX - rect.left;
-      dragOffsetY = e.clientY - rect.top;
+      dragOffsetX = (e.clientX - rect.left) / currentZoom;
+      dragOffsetY = (e.clientY - rect.top) / currentZoom;
     }
 
     function startResizing(e, el, handle) {
@@ -1190,17 +1244,17 @@
     document.addEventListener('mousemove', (e) => {
       if (isDragging && selectedElement) {
         const canvasRect = canvas.getBoundingClientRect();
-        let newX = e.clientX - canvasRect.left - dragOffsetX;
-        let newY = e.clientY - canvasRect.top - dragOffsetY;
+        let newX = (e.clientX - canvasRect.left) / currentZoom - dragOffsetX;
+        let newY = (e.clientY - canvasRect.top) / currentZoom - dragOffsetY;
 
-        newX = Math.max(0, Math.min(newX, canvasRect.width - selectedElement.offsetWidth));
-        newY = Math.max(0, Math.min(newY, canvasRect.height - selectedElement.offsetHeight));
+        newX = Math.max(0, Math.min(newX, (canvasRect.width / currentZoom) - selectedElement.offsetWidth));
+        newY = Math.max(0, Math.min(newY, (canvasRect.height / currentZoom) - selectedElement.offsetHeight));
 
         selectedElement.style.left = `${newX}px`;
         selectedElement.style.top = `${newY}px`;
       } else if (isResizing && selectedElement) {
-        const deltaX = e.clientX - startMouseX;
-        const deltaY = e.clientY - startMouseY;
+        const deltaX = (e.clientX - startMouseX) / currentZoom;
+        const deltaY = (e.clientY - startMouseY) / currentZoom;
 
         if (currentResizeHandle.includes('e')) {
           selectedElement.style.width = `${Math.max(40, initialWidth + deltaX)}px`;
@@ -1253,6 +1307,7 @@
         selectedElement = null;
         document.getElementById('no-prop-selected').style.display = 'block';
         document.getElementById('prop-controls-form').style.display = 'none';
+        document.getElementById('selected-type-badge').innerText = '選択なし';
       }
     }
 
@@ -1266,7 +1321,6 @@
       loadExternalURL();
     }
 
-    // 方法1: URL経由での読み込み
     function loadExternalURL() {
       const url = document.getElementById('sim-url-input').value.trim();
       if (!url) return;
@@ -1285,7 +1339,6 @@
       }
     }
 
-    // 方法2: HTMLコード直貼り読み込み（ログイン画面保護回避用）
     function loadPastedHTML() {
       const htmlCode = document.getElementById('sim-html-input').value.trim();
       if (!htmlCode) {
@@ -1361,6 +1414,66 @@
           console.log("Iframe inspect limited: " + err);
         }
       }, 500);
+    }
+
+    // ③ インスペクターの「ホールクローン (Whole Clone)」機能
+    function wholeCloneToCanvas() {
+      try {
+        const doc = simIframe.contentDocument || simIframe.contentWindow.document;
+        if (!doc || !doc.body || doc.body.children.length === 0) {
+          showToast("シミュレーター内に読み込まれたページがありません");
+          return;
+        }
+
+        // キャンバスをクリア
+        canvas.innerHTML = '';
+        const bodyRect = doc.body.getBoundingClientRect();
+        
+        // ページの主要ブロック要素をスキャンしてクローン
+        const elements = doc.body.querySelectorAll('header, nav, section, article, main, footer, form, h1, h2, h3, h4, p, button, a.btn, input, img, div.card, div.container');
+        
+        let count = 0;
+        const targetElements = elements.length > 0 ? Array.from(elements) : Array.from(doc.body.children);
+
+        targetElements.forEach((node) => {
+          const rect = node.getBoundingClientRect();
+          if (rect.width < 30 || rect.height < 15) return; // 小さすぎる/非表示の要素はスキップ
+
+          const style = getComputedStyle(node);
+          if (style.display === 'none' || style.visibility === 'hidden') return;
+
+          const tag = node.tagName.toLowerCase();
+          const text = node.innerText ? node.innerText.trim().slice(0, 80) : '';
+
+          let type = 'card';
+          if (tag === 'header' || tag === 'nav') type = 'header';
+          else if (tag === 'section' || tag === 'main' || tag === 'article') type = 'hero';
+          else if (tag === 'h1' || tag === 'h2' || tag === 'h3' || tag === 'h4') type = 'heading';
+          else if (tag === 'button' || tag === 'a') type = 'button';
+          else if (tag === 'input') type = 'input';
+          else if (tag === 'p' || tag === 'span') type = 'text';
+          else if (tag === 'img') type = 'image';
+
+          const x = Math.max(10, Math.round(rect.left));
+          const y = Math.max(10, Math.round(rect.top));
+          const w = Math.min(980, Math.max(60, Math.round(rect.width)));
+          const h = Math.max(30, Math.round(rect.height));
+
+          const created = createElement(type, x, y, w, h);
+          created.style.backgroundColor = style.backgroundColor !== 'rgba(0, 0, 0, 0)' ? style.backgroundColor : (type === 'heading' || type === 'text' ? 'transparent' : '#f1f5f9');
+          created.style.color = style.color || '#334155';
+
+          const textNode = created.querySelector('.canvas-text-node');
+          if (textNode && text) textNode.innerText = text;
+
+          count++;
+        });
+
+        switchMainMode('canvas');
+        showToast(`✨ Webページ全体から ${count} 個の要素をホールクローンしました！`);
+      } catch (err) {
+        showToast("クローンエラー: " + err.message);
+      }
     }
 
     function importInspectedToCanvas() {
