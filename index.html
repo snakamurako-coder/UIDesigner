@@ -368,6 +368,10 @@
       z-index: 999 !important;
     }
 
+    .canvas-text-node {
+      writing-mode: inherit;
+    }
+
     /* Resize Handles */
     .resize-handle {
       position: absolute;
@@ -674,17 +678,26 @@
               <div class="palette-item" draggable="true" data-type="flexrow">
                 <i class="fa-solid fa-grip"></i> 横並びボックス
               </div>
+              <div class="palette-item" draggable="true" data-type="scrollbox">
+                <i class="fa-solid fa-sliders"></i> スクロールエリア
+              </div>
             </div>
           </div>
 
           <div class="palette-section">
-            <div class="palette-title">基本要素</div>
+            <div class="palette-title">基本要素・フォーム</div>
             <div class="palette-grid">
               <div class="palette-item" draggable="true" data-type="button">
                 <i class="fa-solid fa-rectangle-ad"></i> メインボタン
               </div>
               <div class="palette-item" draggable="true" data-type="input">
                 <i class="fa-solid fa-font"></i> 入力フォーム
+              </div>
+              <div class="palette-item" draggable="true" data-type="toggle">
+                <i class="fa-solid fa-toggle-on"></i> スライドスイッチ
+              </div>
+              <div class="palette-item" draggable="true" data-type="checkbox">
+                <i class="fa-solid fa-square-check"></i> ☑ボックス
               </div>
               <div class="palette-item" draggable="true" data-type="heading">
                 <i class="fa-solid fa-heading"></i> 見出しテキスト
@@ -759,6 +772,14 @@
           <div class="prop-group">
             <label class="prop-label">テキスト / 内容</label>
             <input type="text" id="prop-text-input" class="prop-input" oninput="updateSelectedProp('text', this.value)">
+          </div>
+
+          <div class="prop-group">
+            <label class="prop-label">文字の方向 (縦書き / 横書き)</label>
+            <select id="prop-writing-mode" class="prop-input" onchange="updateSelectedProp('writingMode', this.value)">
+              <option value="horizontal-tb">横書き (Horizontal)</option>
+              <option value="vertical-rl">縦書き (Vertical R-L)</option>
+            </select>
           </div>
 
           <div class="prop-group">
@@ -867,19 +888,25 @@
       header.style.backgroundColor = '#1e293b';
       header.style.color = '#ffffff';
 
-      const hero = createElement('hero', 20, 100, 960, 220);
+      const hero = createElement('hero', 20, 100, 960, 200);
       const heroText = hero.querySelector('.canvas-text-node');
       if (heroText) heroText.innerText = '🚀 GAS UIデザイナーへようこそ';
       hero.style.backgroundColor = '#3b82f6';
       hero.style.color = '#ffffff';
 
-      const card1 = createElement('card', 20, 340, 470, 200);
+      const card1 = createElement('card', 20, 320, 470, 180);
       const card1Text = card1.querySelector('.canvas-text-node');
       if (card1Text) card1Text.innerText = '📦 機能カード 1';
       
-      const card2 = createElement('card', 510, 340, 470, 200);
-      const card2Text = card2.querySelector('.canvas-text-node');
-      if (card2Text) card2Text.innerText = '⚡ 機能カード 2';
+      const toggle1 = createElement('toggle', 40, 440, 120, 40);
+      const checkbox1 = createElement('checkbox', 200, 440, 150, 40);
+
+      const vertHeading = createElement('heading', 510, 320, 60, 180);
+      vertHeading.style.writingMode = 'vertical-rl';
+      const vertText = vertHeading.querySelector('.canvas-text-node');
+      if (vertText) vertText.innerText = '縦書きのタイトル領域';
+
+      const scrollbox1 = createElement('scrollbox', 600, 320, 380, 180);
     }
 
     function switchMainMode(mode) {
@@ -945,6 +972,7 @@
       el.style.display = 'flex';
       el.style.alignItems = 'center';
       el.style.justifyContent = 'center';
+      el.style.writingMode = 'horizontal-tb';
 
       let innerHTML = '';
       if (type === 'button') {
@@ -953,6 +981,53 @@
         el.style.width = '140px';
         el.style.height = '45px';
         innerHTML = `<span class="canvas-text-node">ボタン</span>`;
+      } else if (type === 'toggle') {
+        el.style.backgroundColor = '#f1f5f9';
+        el.style.color = '#334155';
+        el.style.width = '130px';
+        el.style.height = '42px';
+        el.style.border = '1px solid #cbd5e1';
+        innerHTML = `
+          <div style="display:flex; align-items:center; gap:10px; width:100%; pointer-events:none;">
+            <div style="width:42px; height:24px; background:#3b82f6; border-radius:12px; position:relative; flex-shrink:0;">
+              <div style="width:20px; height:20px; background:#ffffff; border-radius:50%; position:absolute; top:2px; right:2px; box-shadow:0 1px 3px rgba(0,0,0,0.3);"></div>
+            </div>
+            <span class="canvas-text-node">ON</span>
+          </div>`;
+      } else if (type === 'checkbox') {
+        el.style.backgroundColor = '#f1f5f9';
+        el.style.color = '#334155';
+        el.style.width = '150px';
+        el.style.height = '42px';
+        el.style.border = '1px solid #cbd5e1';
+        innerHTML = `
+          <div style="display:flex; align-items:center; gap:10px; width:100%; pointer-events:none;">
+            <div style="width:20px; height:20px; background:#3b82f6; border-radius:4px; display:flex; align-items:center; justify-content:center; color:#ffffff; font-size:12px; flex-shrink:0;">
+              <i class="fa-solid fa-check"></i>
+            </div>
+            <span class="canvas-text-node">チェック項目</span>
+          </div>`;
+      } else if (type === 'scrollbox') {
+        el.style.backgroundColor = '#ffffff';
+        el.style.color = '#334155';
+        el.style.width = '260px';
+        el.style.height = '160px';
+        el.style.padding = '0';
+        el.style.border = '1px solid #cbd5e1';
+        innerHTML = `
+          <div style="width:100%; height:100%; overflow-y:scroll; padding:12px; box-sizing:border-box;">
+            <div style="min-height:280px;" class="canvas-text-node">
+              📜 スクロールエリア<br>
+              --------------------<br>
+              ・項目 1: データリスト<br>
+              ・項目 2: データリスト<br>
+              ・項目 3: データリスト<br>
+              ・項目 4: データリスト<br>
+              ・項目 5: データリスト<br>
+              ・項目 6: データリスト<br>
+              ・項目 7: データリスト
+            </div>
+          </div>`;
       } else if (type === 'heading') {
         el.style.backgroundColor = 'transparent';
         el.style.color = '#0f172a';
@@ -1014,6 +1089,7 @@
 
       const textNode = el.querySelector('.canvas-text-node');
       document.getElementById('prop-text-input').value = textNode ? textNode.innerText : '';
+      document.getElementById('prop-writing-mode').value = el.style.writingMode || 'horizontal-tb';
       document.getElementById('prop-width').value = parseInt(el.style.width) || el.offsetWidth;
       document.getElementById('prop-height').value = parseInt(el.style.height) || el.offsetHeight;
       document.getElementById('prop-bg-color').value = rgbToHex(el.style.backgroundColor);
@@ -1038,6 +1114,7 @@
       const textNode = selectedElement.querySelector('.canvas-text-node');
 
       if (key === 'text' && textNode) textNode.innerText = value;
+      else if (key === 'writingMode') selectedElement.style.writingMode = value;
       else if (key === 'width') selectedElement.style.width = `${value}px`;
       else if (key === 'height') selectedElement.style.height = `${value}px`;
       else if (key === 'bgColor') selectedElement.style.backgroundColor = value;
@@ -1124,6 +1201,7 @@
       const clone = createElement(type, x, y, w, h);
       clone.style.backgroundColor = selectedElement.style.backgroundColor;
       clone.style.color = selectedElement.style.color;
+      clone.style.writingMode = selectedElement.style.writingMode;
     }
 
     function deleteSelected() {
@@ -1223,6 +1301,7 @@
           height: el.offsetHeight,
           bgColor: el.style.backgroundColor,
           color: el.style.color,
+          writingMode: el.style.writingMode || 'horizontal-tb',
           text: textNode ? textNode.innerText : ''
         });
       });
@@ -1260,6 +1339,7 @@
         const el = createElement(item.type, item.left, item.top, item.width, item.height);
         el.style.backgroundColor = item.bgColor;
         el.style.color = item.color;
+        el.style.writingMode = item.writingMode || 'horizontal-tb';
         const textNode = el.querySelector('.canvas-text-node');
         if (textNode) textNode.innerText = item.text;
       });
@@ -1300,17 +1380,19 @@
       els.forEach((el, index) => {
         const textNode = el.querySelector('.canvas-text-node');
         const text = textNode ? textNode.innerText : '';
+        const writingDirection = (el.style.writingMode === 'vertical-rl') ? '縦書き (vertical-rl)' : '横書き (horizontal-tb)';
         promptText += `\n### ${index + 1}. [${el.dataset.type.toUpperCase()}] ${text}\n`;
         promptText += `- 配置位置: x: ${el.offsetLeft}px, y: ${el.offsetTop}px\n`;
         promptText += `- サイズ: 幅: ${el.offsetWidth}px, 高さ: ${el.offsetHeight}px\n`;
         promptText += `- 背景色: ${el.style.backgroundColor}\n`;
         promptText += `- 文字色: ${el.style.color}\n`;
+        promptText += `- 文字方向: ${writingDirection}\n`;
       });
 
       promptText += `\n## IDE・AIへの実装指示:\n`;
       promptText += `1. セマンティックなHTML5要素およびFlexbox/Gridレイアウトを使用して構築してください。\n`;
-      promptText += `2. フォントには可読性の高いモダンなサンセリフ体を使用してください。\n`;
-      promptText += `3. モバイル端末にも対応したレスポンシブデザインおよび滑らかなホバーエフェクトを適用してください。\n`;
+      promptText += `2. 「文字の方向」で指定された縦書き（writing-mode: vertical-rl）および横書き（horizontal-tb）を適切にCSSで実装してください。\n`;
+      promptText += `3. スライドスイッチ、☑ボックス、スクロールエリア等のフォーム要素・インタラクティブコンポーネントを含めて正しく機能させてください。\n`;
 
       return promptText;
     }
@@ -1320,7 +1402,8 @@
       document.querySelectorAll('.canvas-el').forEach(el => {
         const textNode = el.querySelector('.canvas-text-node');
         const text = textNode ? textNode.innerText : '';
-        html += `  <div style="position: absolute; left: ${el.offsetLeft}px; top: ${el.offsetTop}px; width: ${el.offsetWidth}px; height: ${el.offsetHeight}px; background-color: ${el.style.backgroundColor}; color: ${el.style.color}; border-radius: 8px; padding: 12px; display: flex; align-items: center; justify-content: center;">\n`;
+        const writingModeCSS = el.style.writingMode ? ` writing-mode: ${el.style.writingMode};` : '';
+        html += `  <div style="position: absolute; left: ${el.offsetLeft}px; top: ${el.offsetTop}px; width: ${el.offsetWidth}px; height: ${el.offsetHeight}px; background-color: ${el.style.backgroundColor}; color: ${el.style.color};${writingModeCSS} border-radius: 8px; padding: 12px; display: flex; align-items: center; justify-content: center;">\n`;
         html += `    <span>${text}</span>\n`;
         html += `  </div>\n`;
       });
@@ -1340,6 +1423,7 @@
           h: el.offsetHeight,
           bgColor: el.style.backgroundColor,
           color: el.style.color,
+          writingMode: el.style.writingMode || 'horizontal-tb',
           text: textNode ? textNode.innerText : ''
         });
       });

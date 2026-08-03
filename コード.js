@@ -44,7 +44,8 @@ function fetchExternalUrl(targetUrl) {
     content = content.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '');
     
     // 相対パスの絶対URL化処理
-    const baseUrl = new URL(url).origin;
+    const match = url.match(/^(https?:\/\/[^\/]+)/i);
+    const baseUrl = match ? match[1] : url;
     content = content.replace(/(href|src)=["'](?!\/\/|http)(?:\.?\/)?([^"']+)["']/gi, `$1="${baseUrl}/$2"`);
     
     return {
