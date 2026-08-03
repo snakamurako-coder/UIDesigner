@@ -3,16 +3,16 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>GAS UI Designer & Web Simulator</title>
+  <title>GAS UI デザイナー & Webシミュレーター</title>
   <!-- Google Fonts & Font Awesome Icons -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;600;700&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
   <style>
     /* ==========================================
-       1. Global Reset & GAS Frame Compatibility
+       1. Global Reset & Theme Tokens
        ========================================== */
     :root {
       --bg-dark: #0b0f19;
@@ -37,7 +37,7 @@
       margin: 0;
       padding: 0;
       overflow: hidden;
-      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      font-family: 'Noto Sans JP', 'Inter', system-ui, sans-serif;
       background-color: var(--bg-dark);
       color: var(--text-main);
       user-select: none;
@@ -68,7 +68,7 @@
       display: flex;
       align-items: center;
       gap: 10px;
-      font-family: 'Outfit', sans-serif;
+      font-family: 'Outfit', 'Noto Sans JP', sans-serif;
       font-weight: 700;
       font-size: 1.15rem;
       color: #60a5fa;
@@ -169,7 +169,7 @@
     }
 
     /* ==========================================
-       3. Main App Workspace Layout (3 Columns)
+       3. Main App Workspace Layout
        ========================================== */
     .app-workspace {
       height: calc(100vh - 60px);
@@ -613,102 +613,102 @@
 </head>
 <body>
 
-  <!-- Header Bar -->
+  <!-- ヘッダーナビゲーション -->
   <header>
     <div class="brand">
       <i class="fa-solid fa-wand-magic-sparkles"></i>
-      <span>GAS UI Designer & Simulator</span>
+      <span>GAS UI デザイナー & Webシミュレーター</span>
     </div>
 
-    <!-- Mode Tabs -->
+    <!-- モード切り替えタブ -->
     <div class="view-mode-tabs">
       <button class="mode-tab-btn active" id="btn-mode-canvas" onclick="switchMainMode('canvas')">
-        <i class="fa-solid fa-palette"></i> UI Canvas
+        <i class="fa-solid fa-palette"></i> UIキャンバス
       </button>
       <button class="mode-tab-btn" id="btn-mode-simulator" onclick="switchMainMode('simulator')">
-        <i class="fa-solid fa-globe"></i> Web Simulator
+        <i class="fa-solid fa-globe"></i> Webシミュレーター
       </button>
     </div>
 
-    <!-- Viewport Devices -->
+    <!-- ビューポートデバイス切替 -->
     <div class="viewport-controls">
-      <button class="device-btn active" onclick="setViewport('desktop')"><i class="fa-solid fa-desktop"></i> Desktop</button>
-      <button class="device-btn" onclick="setViewport('tablet')"><i class="fa-solid fa-tablet-screen-button"></i> Tablet</button>
-      <button class="device-btn" onclick="setViewport('mobile')"><i class="fa-solid fa-mobile-screen-button"></i> Mobile</button>
+      <button class="device-btn active" onclick="setViewport('desktop')"><i class="fa-solid fa-desktop"></i> デスクトップ</button>
+      <button class="device-btn" onclick="setViewport('tablet')"><i class="fa-solid fa-tablet-screen-button"></i> タブレット</button>
+      <button class="device-btn" onclick="setViewport('mobile')"><i class="fa-solid fa-mobile-screen-button"></i> モバイル</button>
     </div>
 
-    <!-- Actions -->
+    <!-- アクションボタン群 -->
     <div class="header-actions">
-      <button class="btn" onclick="saveLayoutToGAS()"><i class="fa-solid fa-floppy-disk"></i> Save</button>
-      <button class="btn" onclick="loadLayoutFromGAS()"><i class="fa-solid fa-folder-open"></i> Load</button>
-      <button class="btn" onclick="clearCanvas()"><i class="fa-solid fa-rotate-left"></i> Clear</button>
-      <button class="btn btn-export" onclick="openExportModal()"><i class="fa-solid fa-paper-plane"></i> Output for IDE</button>
+      <button class="btn" onclick="saveLayoutToGAS()"><i class="fa-solid fa-floppy-disk"></i> 保存</button>
+      <button class="btn" onclick="loadLayoutFromGAS()"><i class="fa-solid fa-folder-open"></i> 復元</button>
+      <button class="btn" onclick="clearCanvas()"><i class="fa-solid fa-rotate-left"></i> クリア</button>
+      <button class="btn btn-export" onclick="openExportModal()"><i class="fa-solid fa-paper-plane"></i> IDEプロンプト出力</button>
     </div>
   </header>
 
-  <!-- Main Workspace (3 Columns) -->
+  <!-- メインワークスペース（3カラム） -->
   <div class="app-workspace">
     
-    <!-- Left Sidebar -->
+    <!-- 左サイドバー -->
     <div class="sidebar-left">
       <div class="sidebar-tabs">
-        <div class="sidebar-tab active" id="tab-palette" onclick="switchLeftTab('palette')"><i class="fa-solid fa-cubes"></i> UI Parts</div>
-        <div class="sidebar-tab" id="tab-simulator" onclick="switchLeftTab('simulator')"><i class="fa-solid fa-compass"></i> Inspector</div>
+        <div class="sidebar-tab active" id="tab-palette" onclick="switchLeftTab('palette')"><i class="fa-solid fa-cubes"></i> UIパーツ</div>
+        <div class="sidebar-tab" id="tab-simulator" onclick="switchLeftTab('simulator')"><i class="fa-solid fa-compass"></i> インスペクター</div>
       </div>
 
       <div class="sidebar-content">
-        <!-- Palette Tab -->
+        <!-- UIパーツパレットタブ -->
         <div id="content-palette">
           <div class="palette-section">
-            <div class="palette-title">Layout Containers</div>
+            <div class="palette-title">レイアウト・容器</div>
             <div class="palette-grid">
               <div class="palette-item" draggable="true" data-type="header">
-                <i class="fa-solid fa-window-maximize"></i> Header Nav
+                <i class="fa-solid fa-window-maximize"></i> ヘッダーナビ
               </div>
               <div class="palette-item" draggable="true" data-type="hero">
-                <i class="fa-solid fa-sparkles"></i> Hero Banner
+                <i class="fa-solid fa-sparkles"></i> ヒーローエリア
               </div>
               <div class="palette-item" draggable="true" data-type="card">
-                <i class="fa-solid fa-id-card"></i> Card Container
+                <i class="fa-solid fa-id-card"></i> カードコンテナ
               </div>
               <div class="palette-item" draggable="true" data-type="flexrow">
-                <i class="fa-solid fa-grip"></i> Flex Row Box
+                <i class="fa-solid fa-grip"></i> 横並びボックス
               </div>
             </div>
           </div>
 
           <div class="palette-section">
-            <div class="palette-title">Basic Elements</div>
+            <div class="palette-title">基本要素</div>
             <div class="palette-grid">
               <div class="palette-item" draggable="true" data-type="button">
-                <i class="fa-solid fa-rectangle-ad"></i> Primary Button
+                <i class="fa-solid fa-rectangle-ad"></i> メインボタン
               </div>
               <div class="palette-item" draggable="true" data-type="input">
-                <i class="fa-solid fa-font"></i> Input Box
+                <i class="fa-solid fa-font"></i> 入力フォーム
               </div>
               <div class="palette-item" draggable="true" data-type="heading">
-                <i class="fa-solid fa-heading"></i> Heading Text
+                <i class="fa-solid fa-heading"></i> 見出しテキスト
               </div>
               <div class="palette-item" draggable="true" data-type="text">
-                <i class="fa-solid fa-paragraph"></i> Paragraph Text
+                <i class="fa-solid fa-paragraph"></i> 本文テキスト
               </div>
               <div class="palette-item" draggable="true" data-type="badge">
-                <i class="fa-solid fa-tag"></i> Badge / Pill
+                <i class="fa-solid fa-tag"></i> バッジ / タグ
               </div>
               <div class="palette-item" draggable="true" data-type="image">
-                <i class="fa-solid fa-image"></i> Image Box
+                <i class="fa-solid fa-image"></i> 画像エリア
               </div>
             </div>
           </div>
         </div>
 
-        <!-- Simulator Inspector Tab -->
+        <!-- Webシミュレーター・インスペクタータブ -->
         <div id="content-simulator" style="display: none;">
           <div class="simulator-controls">
-            <div class="palette-title">Target Web Page URL</div>
+            <div class="palette-title">対象のWebページURL</div>
             <div class="input-group">
               <input type="text" id="sim-url-input" class="input-text" placeholder="https://example.com">
-              <button class="btn btn-primary" onclick="loadExternalURL()"><i class="fa-solid fa-magnifying-glass"></i> Load</button>
+              <button class="btn btn-primary" onclick="loadExternalURL()"><i class="fa-solid fa-magnifying-glass"></i> 読み込む</button>
             </div>
             <div style="display: flex; gap: 6px; flex-wrap: wrap;">
               <span class="preset-chip" onclick="setPresetURL('https://example.com')">Example.com</span>
@@ -717,37 +717,37 @@
           </div>
 
           <div class="inspector-box" id="inspector-result-box" style="display: none;">
-            <h4 style="font-size: 0.85rem; color: var(--accent-purple); margin-bottom: 8px;"><i class="fa-solid fa-crosshairs"></i> Inspected Element</h4>
-            <div class="element-info-row">Tag: <span id="insp-tag">-</span></div>
-            <div class="element-info-row">Class: <span id="insp-class">-</span></div>
-            <div class="element-info-row">Text: <span id="insp-text">-</span></div>
+            <h4 style="font-size: 0.85rem; color: var(--accent-purple); margin-bottom: 8px;"><i class="fa-solid fa-crosshairs"></i> 解析された要素</h4>
+            <div class="element-info-row">タグ: <span id="insp-tag">-</span></div>
+            <div class="element-info-row">クラス: <span id="insp-class">-</span></div>
+            <div class="element-info-row">テキスト: <span id="insp-text">-</span></div>
             <button class="btn btn-export" style="width: 100%; margin-top: 10px;" onclick="importInspectedToCanvas()">
-              <i class="fa-solid fa-plus"></i> Import to Canvas
+              <i class="fa-solid fa-plus"></i> キャンバスにインポート
             </button>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- Center Canvas Area -->
+    <!-- 中央キャンバス領域 -->
     <div class="canvas-viewport-wrapper">
       
-      <!-- Visual Canvas -->
+      <!-- ビジュアルキャンバス -->
       <div id="visual-canvas">
-        <!-- Dynamic canvas elements -->
+        <!-- 動的コンポーネントが配置されます -->
       </div>
 
-      <!-- Simulator View Frame -->
+      <!-- シミュレーターフレーム -->
       <div id="simulator-frame-container">
         <iframe id="simulator-iframe-host" src="about:blank"></iframe>
       </div>
     </div>
 
-    <!-- Right Sidebar (Properties Panel) -->
+    <!-- 右サイドバー（プロパティ設定） -->
     <div class="sidebar-right">
       <div class="prop-header">
-        <span><i class="fa-solid fa-sliders"></i> Property Inspector</span>
-        <span id="selected-type-badge" style="font-size: 0.75rem; color: var(--accent-blue);">None</span>
+        <span><i class="fa-solid fa-sliders"></i> プロパティ設定</span>
+        <span id="selected-type-badge" style="font-size: 0.75rem; color: var(--accent-blue);">選択なし</span>
       </div>
 
       <div class="prop-content">
@@ -799,19 +799,19 @@
 
   </div>
 
-  <!-- Output Modal -->
+  <!-- 出力ダイアログモーダル -->
   <div class="modal-overlay" id="export-modal">
     <div class="modal-card">
       <div class="modal-header">
         <div class="modal-tabs">
           <button class="modal-tab-btn active" id="mtab-prompt" onclick="switchModalTab('prompt')">
-            <i class="fa-solid fa-robot"></i> AI IDE Prompt Spec
+            <i class="fa-solid fa-robot"></i> AI IDEプロンプト
           </button>
           <button class="modal-tab-btn" id="mtab-html" onclick="switchModalTab('html')">
-            <i class="fa-solid fa-code"></i> HTML & CSS Code
+            <i class="fa-solid fa-code"></i> HTML/CSSコード
           </button>
           <button class="modal-tab-btn" id="mtab-json" onclick="switchModalTab('json')">
-            <i class="fa-solid fa-file-code"></i> JSON Layout State
+            <i class="fa-solid fa-file-code"></i> JSONデータ
           </button>
         </div>
         <button class="btn" onclick="closeExportModal()"><i class="fa-solid fa-xmark"></i></button>
@@ -823,18 +823,18 @@
 
       <div class="modal-header" style="border-top: 1px solid var(--border-color); border-bottom: none;">
         <span style="font-size: 0.8rem; color: var(--text-dim);">Antigravity や ChatGPT / Claude に渡してそのまま構築依頼できます！</span>
-        <button class="btn btn-primary" onclick="copyModalCode()"><i class="fa-solid fa-copy"></i> Copy Output</button>
+        <button class="btn btn-primary" onclick="copyModalCode()"><i class="fa-solid fa-copy"></i> コピーする</button>
       </div>
     </div>
   </div>
 
-  <!-- Toast Notification -->
+  <!-- トースト通知 -->
   <div class="toast" id="toast-msg">
     <i class="fa-solid fa-circle-check" style="color: var(--accent-green);"></i>
     <span id="toast-text">通知メッセージ</span>
   </div>
 
-  <!-- App Script Logic -->
+  <!-- JSロジック -->
   <script>
     const canvas = document.getElementById('visual-canvas');
     const simFrameContainer = document.getElementById('simulator-frame-container');
@@ -863,23 +863,23 @@
     function createDefaultLayout() {
       const header = createElement('header', 20, 20, 960, 70);
       const headerText = header.querySelector('.canvas-text-node');
-      if (headerText) headerText.innerText = '✨ Brand Logo & Navigation Header';
+      if (headerText) headerText.innerText = '✨ ブランドロゴ & ナビゲーションヘッダー';
       header.style.backgroundColor = '#1e293b';
       header.style.color = '#ffffff';
 
       const hero = createElement('hero', 20, 100, 960, 220);
       const heroText = hero.querySelector('.canvas-text-node');
-      if (heroText) heroText.innerText = '🚀 Welcome to Modern UI Designer';
+      if (heroText) heroText.innerText = '🚀 GAS UIデザイナーへようこそ';
       hero.style.backgroundColor = '#3b82f6';
       hero.style.color = '#ffffff';
 
       const card1 = createElement('card', 20, 340, 470, 200);
       const card1Text = card1.querySelector('.canvas-text-node');
-      if (card1Text) card1Text.innerText = '📦 Feature Card 1';
+      if (card1Text) card1Text.innerText = '📦 機能カード 1';
       
       const card2 = createElement('card', 510, 340, 470, 200);
       const card2Text = card2.querySelector('.canvas-text-node');
-      if (card2Text) card2Text.innerText = '⚡ Feature Card 2';
+      if (card2Text) card2Text.innerText = '⚡ 機能カード 2';
     }
 
     function switchMainMode(mode) {
@@ -952,29 +952,29 @@
         el.style.color = '#ffffff';
         el.style.width = '140px';
         el.style.height = '45px';
-        innerHTML = `<span class="canvas-text-node">Click Action</span>`;
+        innerHTML = `<span class="canvas-text-node">ボタン</span>`;
       } else if (type === 'heading') {
         el.style.backgroundColor = 'transparent';
         el.style.color = '#0f172a';
         el.style.fontSize = '24px';
         el.style.fontWeight = '700';
-        innerHTML = `<span class="canvas-text-node">Section Heading</span>`;
+        innerHTML = `<span class="canvas-text-node">見出しテキスト</span>`;
       } else if (type === 'hero') {
         el.style.backgroundColor = '#8b5cf6';
         el.style.color = '#ffffff';
-        innerHTML = `<span class="canvas-text-node">🚀 Hero Banner Title</span>`;
+        innerHTML = `<span class="canvas-text-node">🚀 ヒーローエリア見出し</span>`;
       } else if (type === 'badge') {
         el.style.backgroundColor = '#10b981';
         el.style.color = '#ffffff';
         el.style.width = '100px';
         el.style.height = '30px';
         el.style.borderRadius = '20px';
-        innerHTML = `<span class="canvas-text-node">NEW</span>`;
+        innerHTML = `<span class="canvas-text-node">新着</span>`;
       } else {
         el.style.backgroundColor = '#f1f5f9';
         el.style.color = '#334155';
         el.style.border = '1px solid #cbd5e1';
-        innerHTML = `<span class="canvas-text-node">${type.toUpperCase()} Component</span>`;
+        innerHTML = `<span class="canvas-text-node">${type.toUpperCase()} コンポーネント</span>`;
       }
 
       el.innerHTML = innerHTML + `
@@ -1029,7 +1029,7 @@
         selectedElement = null;
         document.getElementById('no-prop-selected').style.display = 'block';
         document.getElementById('prop-controls-form').style.display = 'none';
-        document.getElementById('selected-type-badge').innerText = 'None';
+        document.getElementById('selected-type-badge').innerText = '選択なし';
       }
     });
 
@@ -1176,8 +1176,8 @@
               const el = e.target;
               inspectedElementData = {
                 tag: el.tagName.toLowerCase(),
-                className: el.className || 'none',
-                text: el.innerText ? el.innerText.trim().slice(0, 50) : 'No text',
+                className: el.className || 'なし',
+                text: el.innerText ? el.innerText.trim().slice(0, 50) : 'テキストなし',
                 bgColor: getComputedStyle(el).backgroundColor,
                 color: getComputedStyle(el).color
               };
@@ -1293,30 +1293,30 @@
 
     function generateIDEPrompt() {
       const els = document.querySelectorAll('.canvas-el');
-      let promptText = `# Web Application UI Specification & Implementation Request\n\n`;
-      promptText += `Please build a responsive, high-quality Web UI matching the following visual design layout specification.\n\n`;
-      promptText += `## Design Specifications & Component Hierarchy:\n`;
+      let promptText = `# Webアプリケーション UI構成仕様・コード生成リクエスト\n\n`;
+      promptText += `以下の視覚的レイアウト仕様およびコンポーネント構成に基づいて、レスポンシブで完成度の高いWeb UI（HTML/CSS、React、またはTailwind）を実装してください。\n\n`;
+      promptText += `## デザイン仕様・コンポーネント階層:\n`;
 
       els.forEach((el, index) => {
         const textNode = el.querySelector('.canvas-text-node');
         const text = textNode ? textNode.innerText : '';
         promptText += `\n### ${index + 1}. [${el.dataset.type.toUpperCase()}] ${text}\n`;
-        promptText += `- Position: x: ${el.offsetLeft}px, y: ${el.offsetTop}px\n`;
-        promptText += `- Size: width: ${el.offsetWidth}px, height: ${el.offsetHeight}px\n`;
-        promptText += `- Background Color: ${el.style.backgroundColor}\n`;
-        promptText += `- Text Color: ${el.style.color}\n`;
+        promptText += `- 配置位置: x: ${el.offsetLeft}px, y: ${el.offsetTop}px\n`;
+        promptText += `- サイズ: 幅: ${el.offsetWidth}px, 高さ: ${el.offsetHeight}px\n`;
+        promptText += `- 背景色: ${el.style.backgroundColor}\n`;
+        promptText += `- 文字色: ${el.style.color}\n`;
       });
 
-      promptText += `\n## Implementation Guidelines for IDE:\n`;
-      promptText += `1. Use standard semantic HTML5 elements and flex/grid layout principles.\n`;
-      promptText += `2. Ensure typography uses modern sans-serif fonts (e.g. Inter/Outfit).\n`;
-      promptText += `3. Include subtle animations and responsive adaptations for mobile viewports.\n`;
+      promptText += `\n## IDE・AIへの実装指示:\n`;
+      promptText += `1. セマンティックなHTML5要素およびFlexbox/Gridレイアウトを使用して構築してください。\n`;
+      promptText += `2. フォントには可読性の高いモダンなサンセリフ体を使用してください。\n`;
+      promptText += `3. モバイル端末にも対応したレスポンシブデザインおよび滑らかなホバーエフェクトを適用してください。\n`;
 
       return promptText;
     }
 
     function generateCleanHTML() {
-      let html = `<!-- Generated by GAS UI Designer -->\n<div class="ui-container" style="position: relative; width: 100%; min-height: 700px; background: #ffffff;">\n`;
+      let html = `<!-- GAS UI Designer により自動生成 -->\n<div class="ui-container" style="position: relative; width: 100%; min-height: 750px; background: #ffffff;">\n`;
       document.querySelectorAll('.canvas-el').forEach(el => {
         const textNode = el.querySelector('.canvas-text-node');
         const text = textNode ? textNode.innerText : '';
