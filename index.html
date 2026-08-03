@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>UI Builder Base</title>
+  <style>
+    /* 全体のレイアウト（3カラム） */
+    body {
+      display: flex;
+      margin: 0;
+      height: 100vh;
+      font-family: sans-serif;
+      background-color: #f5f5f5;
+    }
+
+    /* 左側のパレット（要素リスト） */
+    #sidebar {
+      width: 200px;
+      background-color: #fff;
+      border-right: 1px solid #ccc;
+      padding: 15px;
+      box-sizing: border-box;
+      box-shadow: 2px 0 5px rgba(0,0,0,0.05);
+      z-index: 10;
+    }
+
+    .palette-item {
+      padding: 10px;
+      margin-bottom: 10px;
+      background-color: #e0e0e0;
+      border: 1px dashed #999;
+      cursor: grab;
+      text-align: center;
+      user-select: none;
+    }
+    
+    .palette-item:active {
+      cursor: grabbing;
+    }
+
+    /* 中央のプレビューエリア（キャンバス） */
+    #canvas-container {
+      flex: 1;
+      padding: 20px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      overflow: auto;
+    }
+
+    #preview-area {
+      width: 800px;
+      height: 600px;
+      background-color: #fff;
+      border: 1px solid #ccc;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+      position: relative;
+      overflow: hidden;
+      background-image: radial-gradient(#e0e0e0 1px, transparent 1px);
+      background-size: 20px 20px;
+    }
+
+    /* キャンバスに配置された要素の共通スタイル */
+    .canvas-element {
+      position: absolute;
+      cursor: grab;
+      box-sizing: border-box;
+      user-select: none;
+      /* デフォルトでは枠線なし、選択時にハイライト */
+      border: 1px solid transparent; 
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .canvas-element:active {
+      cursor: grabbing;
+    }
+    
+    /* 選択中の要素をハイライト */
+    .canvas-element.selected {
+      border: 2px solid #2196F3;
+      z-index: 999;
+    }
+
+    /* 右側のプロパティパネル */
+    #property-panel {
+      width: 250px;
+      background-color: #fff;
+      border-left: 1px solid #ccc;
+      padding: 15px;
+      box-sizing: border-box;
+      box-shadow: -2px 0 5px rgba(0,0,0,0.05);
+      z-index: 10;
+    }
+
+    .prop-group {
+      margin-bottom: 15px;
+    }
+
+    .prop-group label {
+      display: block;
+      font-size: 12px;
+      color: #666;
+      margin-bottom: 5px;
+    }
+
+    .prop-group input[type="text"],
+    .prop-group input[type="number"] {
+      width: 100%;
+      padding: 5px;
+      box-sizing: border-box;
+    }
+    
+    .prop-group input[type="color"] {
+      width: 100%;
+      height: 30px;
+      padding: 0;
+      border: 1px solid #ccc;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- 左側：パレット -->
+  <div id="sidebar">
+    <h3>パーツ</h3>
+    <div class="palette-item" draggable="true" data-type="button">🔘 ボタン</div>
+    <div class="palette-item" draggable="true" data-type="input">📝 入力欄</div>
+    <div class="palette-item" draggable="true" data-type="text">Aa テキスト</div>
+  </div>
+
+  <!-- 中央：プレビューエリア -->
+  <div id="canvas-container">
+    <div id="preview-area">
+      <!-- 要素がここに追加されます -->
+    </div>
+  </div>
+
+  <!-- 右側：プロパティ編集パネル -->
+  <div id="property-panel">
+    <h3>プロパティ</h3>
+    <div id="no-selection-msg">要素を選択してください</div>
+    
+    <div id="property-controls" style="display: none;">
+      <div class="prop-group">
+        <label>テキスト (またはプレースホルダー)</label>
+        <input type="text" id="prop-text">
+      </div>
+      <div class="prop-group">
+        <label>幅 (px)</label>
+        <input type="number" id="prop-width">
+      </div>
+      <div class="prop-group">
+        <label>高さ (px)</label>
+        <input type="number" id="prop-height">
+      </div>
+      <div class="prop-group">
+        <label>背景色</label>
+        <input type="color" id="prop-bgcolor">
+      </div>
+      <div class="prop-group">
+        <label>文字色</label>
+        <input type="color" id="prop-color">
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ==========================================
+    // DOM要素と状態管理
+    // ==========================================
+    const paletteItems = document.querySelectorAll('.palette-item');
+    const previewArea = document.getElementById('preview-area');
+    const propertyControls = document.getElementById('property-controls');
+    const noSelectionMsg = document.getElementById('no-selection-msg');
+
+    // ドラッグ＆ドロップ・再配置用
+    let isDragging = false;
+    let dragTarget = null;
+    let offsetX = 0;
+    let offsetY = 0;
+
+    // 選択中の要素を管理
+    let selectedElement = null;
+
+    // ==========================================
+    // 1. 新規要素のドロップ処理
+    // ==========================================
+    paletteItems.forEach(item => {
+      item.addEventListener('dragstart', (e) => {
+        e.dataTransfer.setData('type', item.getAttribute('data-type'));
+        e.dataTransfer.effectAllowed = 'copy';
+      });
+    });
+
+    previewArea.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'copy';
+    });
+
+    previewArea.addEventListener('drop', (e) => {
+      e.preventDefault();
+      const type = e.dataTransfer.getData('type');
+      if (!type) return;
+
+      const rect = previewArea.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+
+      createElementOnCanvas(type, x, y);
+    });
+
+    // ==========================================
+    // 2. 要素の生成
+    // ==========================================
+    function createElementOnCanvas(type, x, y) {
+      const el = document.createElement('div');
+      el.classList.add('canvas-element');
+      el.dataset.type = type; // プロパティ編集用にタイプを記憶
+      
+      // デフォルトスタイルの設定（編集しやすくするため初期値を明記）
+      el.style.left = `${x}px`;
+      el.style.top = `${y}px`;
+      el.style.width = '120px';
+      el.style.height = '40px';
+      el.style.backgroundColor = type === 'text' ? '#ffffff' : '#e0e0e0';
+      el.style.color = '#000000';
+
+      // 内部要素が親サイズ(100%)に追従するようにスタイル設定
+      switch (type) {
+        case 'button':
+          el.innerHTML = `<button style="pointer-events: none; width: 100%; height: 100%; border: none; background: transparent; color: inherit;">ボタン</button>`;
+          break;
+        case 'input':
+          el.innerHTML = `<input type="text" placeholder="入力欄" style="pointer-events: none; width: 100%; height: 100%; border: none; background: transparent; color: inherit; box-sizing: border-box; padding: 0 8px;">`;
+          break;
+        case 'text':
+          el.innerText = 'テキスト';
+          break;
+      }
+
+      // クリック（ドラッグ開始）時のイベント
+      el.addEventListener('mousedown', (e) => {
+        // イベントの伝播を止める（キャンバスの選択解除を防止）
+        e.stopPropagation();
+        
+        // 要素を選択状態にする
+        selectElement(el);
+
+        // ドラッグの準備
+        isDragging = true;
+        dragTarget = el;
+        const rect = el.getBoundingClientRect();
+        offsetX = e.clientX - rect.left;
+        offsetY = e.clientY - rect.top;
+      });
+
+      previewArea.appendChild(el);
+      
+      // 配置した直後に選択状態にする
+      selectElement(el);
+    }
+
+    // ==========================================
+    // 3. 選択状態の管理とプロパティの反映
+    // ==========================================
+    function selectElement(el) {
+      // 以前の選択を解除
+      if (selectedElement) {
+        selectedElement.classList.remove('selected');
+      }
+      
+      selectedElement = el;
+      selectedElement.classList.add('selected');
+      
+      // プロパティパネルの表示切替
+      noSelectionMsg.style.display = 'none';
+      propertyControls.style.display = 'block';
+
+      // プロパティパネルの値を現在の要素のものに更新
+      updatePropertyPanelValues();
+    }
+
+    // 何もないキャンバスをクリックしたら選択解除
+    previewArea.addEventListener('mousedown', (e) => {
+      if (e.target === previewArea && selectedElement) {
+        selectedElement.classList.remove('selected');
+        selectedElement = null;
+        noSelectionMsg.style.display = 'block';
+        propertyControls.style.display = 'none';
+      }
+    });
+
+    // ==========================================
+    // 4. 再ドラッグ移動処理
+    // ==========================================
+    document.addEventListener('mousemove', (e) => {
+      if (!isDragging || !dragTarget) return;
+      
+      const canvasRect = previewArea.getBoundingClientRect();
+      let newX = e.clientX - canvasRect.left - offsetX;
+      let newY = e.clientY - canvasRect.top - offsetY;
+
+      // キャンバスからはみ出さない制限
+      const maxX = canvasRect.width - dragTarget.offsetWidth;
+      const maxY = canvasRect.height - dragTarget.offsetHeight;
+      dragTarget.style.left = `${Math.max(0, Math.min(newX, maxX))}px`;
+      dragTarget.style.top = `${Math.max(0, Math.min(newY, maxY))}px`;
+    });
+
+    document.addEventListener('mouseup', () => {
+      isDragging = false;
+      dragTarget = null;
+    });
+
+    // ==========================================
+    // 5. プロパティ変更イベント（パネル → 要素）
+    // ==========================================
+    const propText = document.getElementById('prop-text');
+    const propWidth = document.getElementById('prop-width');
+    const propHeight = document.getElementById('prop-height');
+    const propBgColor = document.getElementById('prop-bgcolor');
+    const propColor = document.getElementById('prop-color');
+
+    // パネルに現在の要素の値をセットする関数
+    function updatePropertyPanelValues() {
+      if (!selectedElement) return;
+
+      // テキストの取得（要素によって場所が違う）
+      const type = selectedElement.dataset.type;
+      if (type === 'button') propText.value = selectedElement.querySelector('button').innerText;
+      else if (type === 'input') propText.value = selectedElement.querySelector('input').placeholder;
+      else propText.value = selectedElement.innerText;
+
+      // スタイルの取得（pxを外して数値化）
+      propWidth.value = parseInt(selectedElement.style.width);
+      propHeight.value = parseInt(selectedElement.style.height);
+      
+      // 色の取得（RGB形式をHEXに変換する簡易処理、初期設定がHEXなのでそのままセット）
+      // ※本格的にやる場合は rgb(r, g, b) を #rrggbb に変換する関数が必要です
+      propBgColor.value = rgbToHex(selectedElement.style.backgroundColor);
+      propColor.value = rgbToHex(selectedElement.style.color);
+    }
+
+    // パネルの入力値が変わった時の処理
+    propText.addEventListener('input', (e) => {
+      if (!selectedElement) return;
+      const type = selectedElement.dataset.type;
+      const text = e.target.value;
+      if (type === 'button') selectedElement.querySelector('button').innerText = text;
+      else if (type === 'input') selectedElement.querySelector('input').placeholder = text;
+      else selectedElement.innerText = text;
+    });
+
+    ['input', 'change'].forEach(evt => {
+      propWidth.addEventListener(evt, (e) => { if(selectedElement) selectedElement.style.width = `${e.target.value}px`; });
+      propHeight.addEventListener(evt, (e) => { if(selectedElement) selectedElement.style.height = `${e.target.value}px`; });
+      propBgColor.addEventListener(evt, (e) => { if(selectedElement) selectedElement.style.backgroundColor = e.target.value; });
+      propColor.addEventListener(evt, (e) => { if(selectedElement) selectedElement.style.color = e.target.value; });
+    });
+
+    // ユーティリティ: rgb(255,255,255) を #ffffff に変換
+    function rgbToHex(rgbStr) {
+      if (!rgbStr) return '#000000';
+      if (rgbStr.startsWith('#')) return rgbStr;
+      const rgb = rgbStr.match(/\d+/g);
+      if (!rgb || rgb.length < 3) return '#000000';
+      return "#" + (1 << 24 | rgb[0] << 16 | rgb[1] << 8 | rgb[2]).toString(16).slice(1);
+    }
+  </script>
+</body>
+</html>
