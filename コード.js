@@ -1,66 +1,88 @@
 // ==========================================
-// UI Builder - バックエンド (code.gs)
+// GAS UI Designer & Simulator - バックエンド (コード.js)
 // ==========================================
 
 /**
  * WebアプリのURLにアクセスされた時に自動で実行される必須関数
- * サーバー側でHTMLを構築し、ブラウザに返します。
  */
 function doGet(e) {
-  // 'index' という名前のファイル（index.html）を読み込んで画面を生成
   const htmlOutput = HtmlService.createTemplateFromFile('index').evaluate();
-  
-  // ブラウザのタブに表示されるタイトル
-  htmlOutput.setTitle('GAS UI Builder');
-  
-  // モバイル端末での表示崩れを防ぐためのビューポート設定
+  htmlOutput.setTitle('GAS UI Designer & Web Simulator');
   htmlOutput.addMetaTag('viewport', 'width=device-width, initial-scale=1');
-  
-  // iframe（外部サイトなど）での埋め込み表示を許可する設定
   htmlOutput.setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
-  
   return htmlOutput;
 }
 
 /**
- * HTML/JSの分割管理用ヘルパー関数（大規模化する場合に便利です）
- * HTMLファイル内で <?!= include('ファイル名'); ?> と書くことで、別ファイルを読み込めます。
+ * HTML/JSの分割管理用ヘルパー関数
  */
 function include(filename) {
   return HtmlService.createHtmlOutputFromFile(filename).getContent();
 }
 
-// ==========================================
-// 以下は今後のステップで利用するデータ保存・連携用のAPI（準備）
-// ==========================================
-
 /**
- * フロントエンドで作成したUIデータ（JSON）をGAS側に保存する関数
- * フロントエンドのJSから `google.script.run.saveUIData(jsonString)` で呼び出します。
+ * 外部URLのコンテンツを取得するプロキシ関数（CORS回避・シミュレーター用）
  */
-function saveUIData(jsonData) {
+function fetchExternalUrl(targetUrl) {
   try {
-    // 例: プロパティサービスを使ってGASのプロジェクト内に簡易保存する
-    PropertiesService.getUserProperties().setProperty('saved_ui_layout', jsonData);
+    let url = targetUrl.trim();
+    if (!url.startsWith('http://') && !url.startsWith('https://')) {
+      url = 'https://' + url;
+    }
     
-    // ※スプレッドシートやGoogle Driveのテキストファイルに保存するよう変更することも可能です。
+    const response = UrlFetchApp.fetch(url, {
+      muteHttpExceptions: true,
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+      }
+    });
     
-    return { success: true, message: "デザインデータを保存しました" };
+    const responseCode = response.getResponseCode();
+    let content = response.getContentText('UTF-8');
+    
+    // スクリプトタグの無効化（安全対策および実行エラー防止）
+    content = content.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '');
+    
+    // 相対パスの絶対URL化処理
+    const baseUrl = new URL(url).origin;
+    content = content.replace(/(href|src)=["'](?!\/\/|http)(?:\.?\/)?([^"']+)["']/gi, `$1="${baseUrl}/$2"`);
+    
+    return {
+      success: true,
+      url: url,
+      statusCode: responseCode,
+      content: content
+    };
   } catch (error) {
-    console.error("保存エラー: " + error.message);
-    return { success: false, message: "エラーが発生しました: " + error.message };
+    console.error("Fetch Error: " + error.toString());
+    return {
+      success: false,
+      message: "Webページの取得に失敗しました: " + error.message
+    };
   }
 }
 
 /**
- * 保存しておいたUIデータ（JSON）を読み込む関数
- * 画面を開いた時に前回の状態を復元するために使います。
+ * UIデザインデータ（JSON）の保存
+ */
+function saveUIData(jsonData) {
+  try {
+    PropertiesService.getUserProperties().setProperty('saved_ui_layout', jsonData);
+    return { success: true, message: "デザインデータを保存しました。" };
+  } catch (error) {
+    console.error("Save error: " + error.message);
+    return { success: false, message: "保存失敗: " + error.message };
+  }
+}
+
+/**
+ * UIデザインデータ（JSON）の読み込み
  */
 function loadUIData() {
   try {
     const data = PropertiesService.getUserProperties().getProperty('saved_ui_layout');
     return { success: true, data: data || null };
   } catch (error) {
-    return { success: false, data: null };
+    return { success: false, data: null, message: error.message };
   }
 }

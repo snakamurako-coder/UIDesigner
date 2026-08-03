@@ -2,371 +2,1448 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <title>UI Builder Base</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GAS UI Designer & Web Simulator</title>
+  <!-- Google Fonts & Font Awesome Icons -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
   <style>
-    /* 全体のレイアウト（3カラム） */
-    body {
-      display: flex;
-      margin: 0;
-      height: 100vh;
-      font-family: sans-serif;
-      background-color: #f5f5f5;
+    /* ==========================================
+       1. Global Reset & Dark Theme Tokens
+       ========================================== */
+    :root {
+      --bg-dark: #0b0f19;
+      --bg-panel: #111827;
+      --bg-card: #1f2937;
+      --bg-input: #374151;
+      --border-color: #374151;
+      --accent-blue: #3b82f6;
+      --accent-purple: #8b5cf6;
+      --accent-pink: #ec4899;
+      --accent-green: #10b981;
+      --text-main: #f9fafb;
+      --text-muted: #9ca3af;
+      --text-dim: #6b7280;
+      --canvas-bg: #0f172a;
+      --shadow-lg: 0 10px 25px -5px rgba(0, 0, 0, 0.5), 0 8px 10px -6px rgba(0, 0, 0, 0.3);
     }
 
-    /* 左側のパレット（要素リスト） */
-    #sidebar {
-      width: 200px;
-      background-color: #fff;
-      border-right: 1px solid #ccc;
-      padding: 15px;
+    * {
       box-sizing: border-box;
-      box-shadow: 2px 0 5px rgba(0,0,0,0.05);
-      z-index: 10;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: var(--bg-dark);
+      color: var(--text-main);
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      user-select: none;
+    }
+
+    /* ==========================================
+       2. Header & Top Bar Layout
+       ========================================== */
+    header {
+      height: 60px;
+      background: rgba(17, 24, 39, 0.95);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 20px;
+      z-index: 100;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-family: 'Outfit', sans-serif;
+      font-weight: 700;
+      font-size: 1.2rem;
+      background: linear-gradient(135deg, #60a5fa, #c084fc, #f472b6);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .brand i {
+      -webkit-text-fill-color: initial;
+      color: #60a5fa;
+      font-size: 1.4rem;
+    }
+
+    .view-mode-tabs {
+      display: flex;
+      background-color: var(--bg-card);
+      border-radius: 8px;
+      padding: 4px;
+      gap: 4px;
+      border: 1px solid var(--border-color);
+    }
+
+    .mode-tab-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      padding: 8px 16px;
+      border-radius: 6px;
+      font-size: 0.85rem;
+      font-weight: 500;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.2s ease;
+    }
+
+    .mode-tab-btn:hover {
+      color: var(--text-main);
+      background: rgba(255, 255, 255, 0.05);
+    }
+
+    .mode-tab-btn.active {
+      background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple));
+      color: #ffffff;
+      box-shadow: 0 2px 8px rgba(59, 130, 246, 0.4);
+    }
+
+    .viewport-controls {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--bg-card);
+      padding: 4px 8px;
+      border-radius: 8px;
+      border: 1px solid var(--border-color);
+    }
+
+    .device-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      padding: 6px 10px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 0.8rem;
+      transition: all 0.2s;
+    }
+
+    .device-btn:hover, .device-btn.active {
+      background: var(--border-color);
+      color: var(--text-main);
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .btn {
+      background: var(--bg-card);
+      color: var(--text-main);
+      border: 1px solid var(--border-color);
+      padding: 8px 14px;
+      border-radius: 6px;
+      font-size: 0.85rem;
+      font-weight: 500;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s;
+    }
+
+    .btn:hover {
+      background: var(--bg-input);
+      border-color: #4b5563;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--accent-blue), #2563eb);
+      border: none;
+      color: white;
+      box-shadow: 0 2px 8px rgba(37, 99, 235, 0.3);
+    }
+
+    .btn-primary:hover {
+      background: linear-gradient(135deg, #2563eb, #1d4ed8);
+    }
+
+    .btn-export {
+      background: linear-gradient(135deg, var(--accent-purple), var(--accent-pink));
+      border: none;
+      color: white;
+      box-shadow: 0 2px 8px rgba(139, 92, 246, 0.3);
+    }
+
+    .btn-export:hover {
+      opacity: 0.9;
+    }
+
+    /* ==========================================
+       3. Main App Workspace Layout (3 Columns)
+       ========================================== */
+    .app-workspace {
+      flex: 1;
+      display: flex;
+      overflow: hidden;
+      position: relative;
+    }
+
+    /* Sidebar (Left) */
+    .sidebar-left {
+      width: 300px;
+      background: var(--bg-panel);
+      border-right: 1px solid var(--border-color);
+      display: flex;
+      flex-direction: column;
+      z-index: 20;
+    }
+
+    .sidebar-tabs {
+      display: flex;
+      border-bottom: 1px solid var(--border-color);
+      background: var(--bg-dark);
+    }
+
+    .sidebar-tab {
+      flex: 1;
+      padding: 12px;
+      text-align: center;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      transition: all 0.2s;
+    }
+
+    .sidebar-tab.active {
+      color: var(--accent-blue);
+      border-bottom-color: var(--accent-blue);
+      background: var(--bg-panel);
+    }
+
+    .sidebar-content {
+      flex: 1;
+      overflow-y: auto;
+      padding: 16px;
+    }
+
+    .palette-section {
+      margin-bottom: 20px;
+    }
+
+    .palette-title {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-dim);
+      font-weight: 700;
+      margin-bottom: 10px;
+    }
+
+    .palette-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
     }
 
     .palette-item {
-      padding: 10px;
-      margin-bottom: 10px;
-      background-color: #e0e0e0;
-      border: 1px dashed #999;
-      cursor: grab;
-      text-align: center;
-      user-select: none;
-    }
-    
-    .palette-item:active {
-      cursor: grabbing;
-    }
-
-    /* 中央のプレビューエリア（キャンバス） */
-    #canvas-container {
-      flex: 1;
-      padding: 20px;
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 12px 10px;
       display: flex;
-      justify-content: center;
+      flex-direction: column;
       align-items: center;
-      overflow: auto;
-    }
-
-    #preview-area {
-      width: 800px;
-      height: 600px;
-      background-color: #fff;
-      border: 1px solid #ccc;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-      position: relative;
-      overflow: hidden;
-      background-image: radial-gradient(#e0e0e0 1px, transparent 1px);
-      background-size: 20px 20px;
-    }
-
-    /* キャンバスに配置された要素の共通スタイル */
-    .canvas-element {
-      position: absolute;
+      gap: 6px;
+      font-size: 0.8rem;
+      color: var(--text-muted);
       cursor: grab;
-      box-sizing: border-box;
-      user-select: none;
-      /* デフォルトでは枠線なし、選択時にハイライト */
-      border: 1px solid transparent; 
+      transition: all 0.2s;
+    }
+
+    .palette-item:hover {
+      border-color: var(--accent-blue);
+      color: var(--text-main);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    }
+
+    .palette-item i {
+      font-size: 1.2rem;
+      color: var(--accent-blue);
+    }
+
+    /* Simulator Panel (Left Tab 2) */
+    .simulator-controls {
       display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-    
-    .canvas-element:active {
-      cursor: grabbing;
-    }
-    
-    /* 選択中の要素をハイライト */
-    .canvas-element.selected {
-      border: 2px solid #2196F3;
-      z-index: 999;
-    }
-
-    /* 右側のプロパティパネル */
-    #property-panel {
-      width: 250px;
-      background-color: #fff;
-      border-left: 1px solid #ccc;
-      padding: 15px;
-      box-sizing: border-box;
-      box-shadow: -2px 0 5px rgba(0,0,0,0.05);
-      z-index: 10;
-    }
-
-    .prop-group {
+      flex-direction: column;
+      gap: 10px;
       margin-bottom: 15px;
     }
 
-    .prop-group label {
-      display: block;
-      font-size: 12px;
-      color: #666;
-      margin-bottom: 5px;
+    .input-group {
+      display: flex;
+      gap: 6px;
     }
 
-    .prop-group input[type="text"],
-    .prop-group input[type="number"] {
-      width: 100%;
-      padding: 5px;
-      box-sizing: border-box;
+    .input-text {
+      flex: 1;
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      padding: 8px 12px;
+      color: var(--text-main);
+      font-size: 0.85rem;
+      outline: none;
     }
-    
-    .prop-group input[type="color"] {
+
+    .input-text:focus {
+      border-color: var(--accent-blue);
+    }
+
+    .simulator-presets {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .preset-chip {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      color: var(--text-muted);
+      font-size: 0.75rem;
+      padding: 4px 8px;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .preset-chip:hover {
+      border-color: var(--accent-purple);
+      color: var(--text-main);
+    }
+
+    .inspector-box {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 12px;
+      margin-top: 10px;
+    }
+
+    .inspector-box h4 {
+      font-size: 0.85rem;
+      color: var(--accent-purple);
+      margin-bottom: 8px;
+    }
+
+    .element-info-row {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      margin-bottom: 4px;
+      word-break: break-all;
+    }
+
+    .element-info-row span {
+      color: var(--text-main);
+      font-weight: 500;
+    }
+
+    /* Center Canvas Area */
+    .canvas-viewport-wrapper {
+      flex: 1;
+      background: var(--canvas-bg);
+      background-image: radial-gradient(rgba(255, 255, 255, 0.07) 1px, transparent 1px);
+      background-size: 24px 24px;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      padding: 40px 20px;
+      overflow: auto;
+      position: relative;
+    }
+
+    #visual-canvas {
+      background: #ffffff;
+      color: #1f2937;
+      min-height: 700px;
+      width: 1000px;
+      border-radius: 8px;
+      box-shadow: var(--shadow-lg);
+      position: relative;
+      transition: width 0.3s ease;
+      overflow: hidden;
+    }
+
+    /* Canvas Element Overlay & Handles */
+    .canvas-el {
+      position: absolute;
+      box-sizing: border-box;
+      user-select: none;
+      transition: outline 0.15s ease;
+      outline: 1px dashed transparent;
+    }
+
+    .canvas-el:hover {
+      outline: 1px dashed #60a5fa;
+    }
+
+    .canvas-el.selected {
+      outline: 2px solid var(--accent-blue) !important;
+      z-index: 999 !important;
+    }
+
+    /* Resize Handles */
+    .resize-handle {
+      position: absolute;
+      width: 8px;
+      height: 8px;
+      background: #ffffff;
+      border: 2px solid var(--accent-blue);
+      border-radius: 50%;
+      display: none;
+      z-index: 1000;
+    }
+
+    .canvas-el.selected .resize-handle {
+      display: block;
+    }
+
+    .handle-nw { top: -5px; left: -5px; cursor: nwse-resize; }
+    .handle-ne { top: -5px; right: -5px; cursor: nesw-resize; }
+    .handle-sw { bottom: -5px; left: -5px; cursor: nesw-resize; }
+    .handle-se { bottom: -5px; right: -5px; cursor: nwse-resize; }
+    .handle-n { top: -5px; left: 50%; transform: translateX(-50%); cursor: ns-resize; }
+    .handle-s { bottom: -5px; left: 50%; transform: translateX(-50%); cursor: ns-resize; }
+    .handle-w { top: 50%; left: -5px; transform: translateY(-50%); cursor: ew-resize; }
+    .handle-e { top: 50%; right: -5px; transform: translateY(-50%); cursor: ew-resize; }
+
+    /* Element Floating Action Bar */
+    .floating-toolbar {
+      position: absolute;
+      top: -36px;
+      left: 0;
+      background: #1e293b;
+      border-radius: 6px;
+      padding: 4px 8px;
+      display: flex;
+      gap: 6px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+      z-index: 1001;
+      display: none;
+    }
+
+    .canvas-el.selected .floating-toolbar {
+      display: flex;
+    }
+
+    .floating-tool-btn {
+      background: transparent;
+      border: none;
+      color: #94a3b8;
+      font-size: 0.75rem;
+      cursor: pointer;
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
+
+    .floating-tool-btn:hover {
+      color: #ffffff;
+      background: #334155;
+    }
+
+    /* Browser Simulator Frame View */
+    #simulator-frame-container {
+      display: none;
       width: 100%;
-      height: 30px;
-      padding: 0;
-      border: 1px solid #ccc;
+      height: 100%;
+      background: #ffffff;
+      border-radius: 8px;
+      overflow: hidden;
+      position: relative;
+    }
+
+    #simulator-iframe-host {
+      width: 100%;
+      height: 100%;
+      border: none;
+      background: #ffffff;
+    }
+
+    /* Right Sidebar (Properties Panel) */
+    .sidebar-right {
+      width: 320px;
+      background: var(--bg-panel);
+      border-left: 1px solid var(--border-color);
+      display: flex;
+      flex-direction: column;
+      z-index: 20;
+    }
+
+    .prop-header {
+      padding: 16px;
+      border-bottom: 1px solid var(--border-color);
+      font-size: 0.9rem;
+      font-weight: 700;
+      color: var(--text-main);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .prop-content {
+      flex: 1;
+      overflow-y: auto;
+      padding: 16px;
+    }
+
+    .prop-group {
+      margin-bottom: 16px;
+    }
+
+    .prop-label {
+      display: block;
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+    }
+
+    .prop-row {
+      display: flex;
+      gap: 8px;
+    }
+
+    .prop-input {
+      width: 100%;
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      padding: 6px 10px;
+      color: var(--text-main);
+      font-size: 0.85rem;
+      outline: none;
+    }
+
+    .prop-input:focus {
+      border-color: var(--accent-blue);
+    }
+
+    .prop-color-picker {
+      width: 100%;
+      height: 34px;
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      background: var(--bg-card);
+      cursor: pointer;
+      padding: 2px;
+    }
+
+    /* ==========================================
+       4. Output & Modal Component
+       ========================================== */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.75);
+      backdrop-filter: blur(4px);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 2000;
+    }
+
+    .modal-card {
+      width: 850px;
+      max-width: 90vw;
+      height: 80vh;
+      background: var(--bg-panel);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      box-shadow: var(--shadow-lg);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .modal-header {
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .modal-tabs {
+      display: flex;
+      gap: 10px;
+    }
+
+    .modal-tab-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      font-size: 0.85rem;
+      font-weight: 600;
+      padding: 8px 16px;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    .modal-tab-btn.active {
+      background: var(--accent-purple);
+      color: white;
+    }
+
+    .modal-body {
+      flex: 1;
+      padding: 20px;
+      overflow-y: auto;
+      background: var(--bg-dark);
+    }
+
+    .code-output {
+      width: 100%;
+      height: 100%;
+      background: #090d16;
+      color: #e2e8f0;
+      font-family: monospace;
+      font-size: 0.85rem;
+      padding: 16px;
+      border-radius: 8px;
+      border: 1px solid var(--border-color);
+      white-space: pre-wrap;
+      overflow: auto;
+      resize: none;
+    }
+
+    /* Notification Toast */
+    .toast {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background: var(--bg-card);
+      border: 1px solid var(--accent-blue);
+      color: var(--text-main);
+      padding: 12px 20px;
+      border-radius: 8px;
+      box-shadow: var(--shadow-lg);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 0.9rem;
+      transform: translateY(100px);
+      opacity: 0;
+      transition: all 0.3s ease;
+      z-index: 3000;
+    }
+
+    .toast.show {
+      transform: translateY(0);
+      opacity: 1;
     }
   </style>
 </head>
 <body>
 
-  <!-- 左側：パレット -->
-  <div id="sidebar">
-    <h3>パーツ</h3>
-    <div class="palette-item" draggable="true" data-type="button">🔘 ボタン</div>
-    <div class="palette-item" draggable="true" data-type="input">📝 入力欄</div>
-    <div class="palette-item" draggable="true" data-type="text">Aa テキスト</div>
-  </div>
-
-  <!-- 中央：プレビューエリア -->
-  <div id="canvas-container">
-    <div id="preview-area">
-      <!-- 要素がここに追加されます -->
+  <!-- ==========================================
+       Header Navigation
+       ========================================== -->
+  <header>
+    <div class="brand">
+      <i class="fa-solid fa-wand-magic-sparkles"></i>
+      <span>GAS UI Designer & Simulator</span>
     </div>
-  </div>
 
-  <!-- 右側：プロパティ編集パネル -->
-  <div id="property-panel">
-    <h3>プロパティ</h3>
-    <div id="no-selection-msg">要素を選択してください</div>
+    <!-- Mode Tabs -->
+    <div class="view-mode-tabs">
+      <button class="mode-tab-btn active" id="btn-mode-canvas" onclick="switchMainMode('canvas')">
+        <i class="fa-solid fa-palette"></i> UI Canvas
+      </button>
+      <button class="mode-tab-btn" id="btn-mode-simulator" onclick="switchMainMode('simulator')">
+        <i class="fa-solid fa-globe"></i> Web Simulator
+      </button>
+    </div>
+
+    <!-- Viewport Devices -->
+    <div class="viewport-controls">
+      <button class="device-btn active" onclick="setViewport('desktop')"><i class="fa-solid fa-desktop"></i> Desktop</button>
+      <button class="device-btn" onclick="setViewport('tablet')"><i class="fa-solid fa-tablet-screen-button"></i> Tablet</button>
+      <button class="device-btn" onclick="setViewport('mobile')"><i class="fa-solid fa-mobile-screen-button"></i> Mobile</button>
+    </div>
+
+    <!-- Actions -->
+    <div class="header-actions">
+      <button class="btn" onclick="saveLayoutToGAS()"><i class="fa-solid fa-floppy-disk"></i> Save</button>
+      <button class="btn" onclick="loadLayoutFromGAS()"><i class="fa-solid fa-folder-open"></i> Load</button>
+      <button class="btn" onclick="clearCanvas()"><i class="fa-solid fa-rotate-left"></i> Clear</button>
+      <button class="btn btn-export" onclick="openExportModal()"><i class="fa-solid fa-paper-plane"></i> Output for IDE</button>
+    </div>
+  </header>
+
+  <!-- ==========================================
+       Main Workspace
+       ========================================== -->
+  <div class="app-workspace">
     
-    <div id="property-controls" style="display: none;">
-      <div class="prop-group">
-        <label>テキスト (またはプレースホルダー)</label>
-        <input type="text" id="prop-text">
+    <!-- Left Sidebar -->
+    <div class="sidebar-left">
+      <div class="sidebar-tabs">
+        <div class="sidebar-tab active" id="tab-palette" onclick="switchLeftTab('palette')"><i class="fa-solid fa-cubes"></i> UI Parts</div>
+        <div class="sidebar-tab" id="tab-simulator" onclick="switchLeftTab('simulator')"><i class="fa-solid fa-compass"></i> URL Inspector</div>
       </div>
-      <div class="prop-group">
-        <label>幅 (px)</label>
-        <input type="number" id="prop-width">
+
+      <div class="sidebar-content">
+        <!-- Palette Tab Content -->
+        <div id="content-palette">
+          <div class="palette-section">
+            <div class="palette-title">Layout Containers</div>
+            <div class="palette-grid">
+              <div class="palette-item" draggable="true" data-type="header">
+                <i class="fa-solid fa-window-maximize"></i> Header Nav
+              </div>
+              <div class="palette-item" draggable="true" data-type="hero">
+                <i class="fa-solid fa-sparkles"></i> Hero Section
+              </div>
+              <div class="palette-item" draggable="true" data-type="card">
+                <i class="fa-solid fa-id-card"></i> Card Container
+              </div>
+              <div class="palette-item" draggable="true" data-type="flexrow">
+                <i class="fa-solid fa-grip"></i> Flex Row Box
+              </div>
+            </div>
+          </div>
+
+          <div class="palette-section">
+            <div class="palette-title">Basic Elements</div>
+            <div class="palette-grid">
+              <div class="palette-item" draggable="true" data-type="button">
+                <i class="fa-solid fa-rectangle-ad"></i> Primary Button
+              </div>
+              <div class="palette-item" draggable="true" data-type="input">
+                <i class="fa-solid fa-font"></i> Input Box
+              </div>
+              <div class="palette-item" draggable="true" data-type="heading">
+                <i class="fa-solid fa-heading"></i> Heading Text
+              </div>
+              <div class="palette-item" draggable="true" data-type="text">
+                <i class="fa-solid fa-paragraph"></i> Paragraph Text
+              </div>
+              <div class="palette-item" draggable="true" data-type="badge">
+                <i class="fa-solid fa-tag"></i> Badge / Pill
+              </div>
+              <div class="palette-item" draggable="true" data-type="image">
+                <i class="fa-solid fa-image"></i> Image Placeholder
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Simulator Inspector Tab Content -->
+        <div id="content-simulator" style="display: none;">
+          <div class="simulator-controls">
+            <div class="palette-title">Target Web Page URL</div>
+            <div class="input-group">
+              <input type="text" id="sim-url-input" class="input-text" placeholder="https://example.com">
+              <button class="btn btn-primary" onclick="loadExternalURL()"><i class="fa-solid fa-magnifying-glass"></i> Load</button>
+            </div>
+            <div class="simulator-presets">
+              <span class="preset-chip" onclick="setPresetURL('https://example.com')">Example.com</span>
+              <span class="preset-chip" onclick="setPresetURL('https://news.ycombinator.com')">HackerNews</span>
+            </div>
+          </div>
+
+          <div class="inspector-box" id="inspector-result-box" style="display: none;">
+            <h4><i class="fa-solid fa-crosshairs"></i> Inspected Element</h4>
+            <div class="element-info-row">Tag: <span id="insp-tag">-</span></div>
+            <div class="element-info-row">Class: <span id="insp-class">-</span></div>
+            <div class="element-info-row">Text: <span id="insp-text">-</span></div>
+            <button class="btn btn-export" style="width: 100%; margin-top: 10px;" onclick="importInspectedToCanvas()">
+              <i class="fa-solid fa-plus"></i> Import to Canvas
+            </button>
+          </div>
+        </div>
       </div>
-      <div class="prop-group">
-        <label>高さ (px)</label>
-        <input type="number" id="prop-height">
+    </div>
+
+    <!-- Center Canvas Area -->
+    <div class="canvas-viewport-wrapper">
+      
+      <!-- Canvas Mode View -->
+      <div id="visual-canvas">
+        <!-- Elements created dynamically -->
       </div>
-      <div class="prop-group">
-        <label>背景色</label>
-        <input type="color" id="prop-bgcolor">
+
+      <!-- Simulator View Frame -->
+      <div id="simulator-frame-container">
+        <iframe id="simulator-iframe-host" src="about:blank"></iframe>
       </div>
-      <div class="prop-group">
-        <label>文字色</label>
-        <input type="color" id="prop-color">
+    </div>
+
+    <!-- Right Sidebar (Properties Panel) -->
+    <div class="sidebar-right">
+      <div class="prop-header">
+        <span><i class="fa-solid fa-sliders"></i> Property Inspector</span>
+        <span id="selected-type-badge" style="font-size: 0.75rem; color: var(--accent-blue);">None</span>
+      </div>
+
+      <div class="prop-content">
+        <div id="no-prop-selected" style="color: var(--text-dim); text-align: center; margin-top: 40px; font-size: 0.85rem;">
+          キャンバス上の要素を選択してください
+        </div>
+
+        <div id="prop-controls-form" style="display: none;">
+          <div class="prop-group">
+            <label class="prop-label">テキスト / 内容</label>
+            <input type="text" id="prop-text-input" class="prop-input" oninput="updateSelectedProp('text', this.value)">
+          </div>
+
+          <div class="prop-group">
+            <label class="prop-label">サイズ (幅 x 高さ px)</label>
+            <div class="prop-row">
+              <input type="number" id="prop-width" class="prop-input" placeholder="W" onchange="updateSelectedProp('width', this.value)">
+              <input type="number" id="prop-height" class="prop-input" placeholder="H" onchange="updateSelectedProp('height', this.value)">
+            </div>
+          </div>
+
+          <div class="prop-group">
+            <label class="prop-label">背景色</label>
+            <input type="color" id="prop-bg-color" class="prop-color-picker" onchange="updateSelectedProp('bgColor', this.value)">
+          </div>
+
+          <div class="prop-group">
+            <label class="prop-label">文字色</label>
+            <input type="color" id="prop-text-color" class="prop-color-picker" onchange="updateSelectedProp('textColor', this.value)">
+          </div>
+
+          <div class="prop-group">
+            <label class="prop-label">フォントサイズ (px)</label>
+            <input type="number" id="prop-font-size" class="prop-input" value="14" onchange="updateSelectedProp('fontSize', this.value)">
+          </div>
+
+          <div class="prop-group">
+            <label class="prop-label">角丸 (Border Radius px)</label>
+            <input type="number" id="prop-border-radius" class="prop-input" value="8" onchange="updateSelectedProp('borderRadius', this.value)">
+          </div>
+
+          <div class="prop-group">
+            <label class="prop-label">パディング (px)</label>
+            <input type="number" id="prop-padding" class="prop-input" value="12" onchange="updateSelectedProp('padding', this.value)">
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ==========================================
+       Output & Export Modal for IDE
+       ========================================== -->
+  <div class="modal-overlay" id="export-modal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div class="modal-tabs">
+          <button class="modal-tab-btn active" id="mtab-prompt" onclick="switchModalTab('prompt')">
+            <i class="fa-solid fa-robot"></i> AI IDE Prompt Spec
+          </button>
+          <button class="modal-tab-btn" id="mtab-html" onclick="switchModalTab('html')">
+            <i class="fa-solid fa-code"></i> HTML & CSS Code
+          </button>
+          <button class="modal-tab-btn" id="mtab-json" onclick="switchModalTab('json')">
+            <i class="fa-solid fa-file-code"></i> JSON Layout State
+          </button>
+        </div>
+        <button class="btn" onclick="closeExportModal()"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+
+      <div class="modal-body">
+        <textarea id="modal-code-area" class="code-output" readonly></textarea>
+      </div>
+
+      <div class="modal-header" style="border-top: 1px solid var(--border-color); border-bottom: none;">
+        <span style="font-size: 0.8rem; color: var(--text-dim);">Antigravity や ChatGPT / Claude に渡してそのまま構築依頼できます！</span>
+        <button class="btn btn-primary" onclick="copyModalCode()"><i class="fa-solid fa-copy"></i> Copy Output</button>
       </div>
     </div>
   </div>
 
+  <!-- Toast Notification -->
+  <div class="toast" id="toast-msg">
+    <i class="fa-solid fa-circle-check" style="color: var(--accent-green);"></i>
+    <span id="toast-text">通知メッセージ</span>
+  </div>
+
+  <!-- ==========================================
+       JavaScript Logic
+       ========================================== -->
   <script>
-    // ==========================================
-    // DOM要素と状態管理
-    // ==========================================
-    const paletteItems = document.querySelectorAll('.palette-item');
-    const previewArea = document.getElementById('preview-area');
-    const propertyControls = document.getElementById('property-controls');
-    const noSelectionMsg = document.getElementById('no-selection-msg');
-
-    // ドラッグ＆ドロップ・再配置用
-    let isDragging = false;
-    let dragTarget = null;
-    let offsetX = 0;
-    let offsetY = 0;
-
-    // 選択中の要素を管理
+    // State management variables
+    const canvas = document.getElementById('visual-canvas');
+    const simFrameContainer = document.getElementById('simulator-frame-container');
+    const simIframe = document.getElementById('simulator-iframe-host');
     let selectedElement = null;
 
-    // ==========================================
-    // 1. 新規要素のドロップ処理
-    // ==========================================
-    paletteItems.forEach(item => {
-      item.addEventListener('dragstart', (e) => {
-        e.dataTransfer.setData('type', item.getAttribute('data-type'));
-        e.dataTransfer.effectAllowed = 'copy';
-      });
+    let isDragging = false;
+    let isResizing = false;
+    let currentResizeHandle = null;
+    let dragOffsetX = 0;
+    let dragOffsetY = 0;
+    let initialWidth = 0;
+    let initialHeight = 0;
+    let initialLeft = 0;
+    let initialTop = 0;
+    let startMouseX = 0;
+    let startMouseY = 0;
+
+    let inspectedElementData = null;
+
+    // Default Initial Canvas Layout Setup
+    window.addEventListener('DOMContentLoaded', () => {
+      setupDragAndDrop();
+      createDefaultLayout();
     });
 
-    previewArea.addEventListener('dragover', (e) => {
-      e.preventDefault();
-      e.dataTransfer.dropEffect = 'copy';
-    });
+    function createDefaultLayout() {
+      const header = createElement('header', 20, 20, 960, 70);
+      header.querySelector('.canvas-text-node').innerText = '✨ Brand Logo & Navigation Header';
+      header.style.backgroundColor = '#1e293b';
+      header.style.color = '#ffffff';
 
-    previewArea.addEventListener('drop', (e) => {
-      e.preventDefault();
-      const type = e.dataTransfer.getData('type');
-      if (!type) return;
+      const hero = createElement('hero', 20, 100, 960, 220);
+      hero.querySelector('.canvas-text-node').innerText = '🚀 Welcome to Modern UI Designer';
+      hero.style.backgroundColor = '#3b82f6';
+      hero.style.color = '#ffffff';
 
-      const rect = previewArea.getBoundingClientRect();
-      const x = e.clientX - rect.left;
-      const y = e.clientY - rect.top;
-
-      createElementOnCanvas(type, x, y);
-    });
-
-    // ==========================================
-    // 2. 要素の生成
-    // ==========================================
-    function createElementOnCanvas(type, x, y) {
-      const el = document.createElement('div');
-      el.classList.add('canvas-element');
-      el.dataset.type = type; // プロパティ編集用にタイプを記憶
+      const card1 = createElement('card', 20, 340, 470, 200);
+      card1.querySelector('.canvas-text-node').innerText = '📦 Feature Card 1';
       
-      // デフォルトスタイルの設定（編集しやすくするため初期値を明記）
+      const card2 = createElement('card', 510, 340, 470, 200);
+      card2.querySelector('.canvas-text-node').innerText = '⚡ Feature Card 2';
+    }
+
+    // Main Mode Switcher (Canvas / Simulator)
+    function switchMainMode(mode) {
+      document.getElementById('btn-mode-canvas').classList.toggle('active', mode === 'canvas');
+      document.getElementById('btn-mode-simulator').classList.toggle('active', mode === 'simulator');
+
+      if (mode === 'canvas') {
+        canvas.style.display = 'block';
+        simFrameContainer.style.display = 'none';
+      } else {
+        canvas.style.display = 'none';
+        simFrameContainer.style.display = 'block';
+      }
+    }
+
+    // Viewport Width Preset Switcher
+    function setViewport(device) {
+      document.querySelectorAll('.device-btn').forEach(b => b.classList.remove('active'));
+      event.currentTarget.classList.add('active');
+
+      if (device === 'desktop') canvas.style.width = '1000px';
+      else if (device === 'tablet') canvas.style.width = '768px';
+      else if (device === 'mobile') canvas.style.width = '375px';
+    }
+
+    // Left Sidebar Tab Switcher
+    function switchLeftTab(tab) {
+      document.getElementById('tab-palette').classList.toggle('active', tab === 'palette');
+      document.getElementById('tab-simulator').classList.toggle('active', tab === 'simulator');
+      document.getElementById('content-palette').style.display = tab === 'palette' ? 'block' : 'none';
+      document.getElementById('content-simulator').style.display = tab === 'simulator' ? 'block' : 'none';
+    }
+
+    // Drag and Drop Palette Elements
+    function setupDragAndDrop() {
+      const paletteItems = document.querySelectorAll('.palette-item');
+      paletteItems.forEach(item => {
+        item.addEventListener('dragstart', (e) => {
+          e.dataTransfer.setData('type', item.getAttribute('data-type'));
+        });
+      });
+
+      canvas.addEventListener('dragover', (e) => e.preventDefault());
+      canvas.addEventListener('drop', (e) => {
+        e.preventDefault();
+        const type = e.dataTransfer.getData('type');
+        if (!type) return;
+        const rect = canvas.getBoundingClientRect();
+        const x = Math.max(0, e.clientX - rect.left);
+        const y = Math.max(0, e.clientY - rect.top);
+        createElement(type, x, y);
+      });
+    }
+
+    // Factory: Create Canvas Element
+    function createElement(type, x, y, width = 200, height = 80) {
+      const el = document.createElement('div');
+      el.classList.add('canvas-el');
+      el.dataset.type = type;
+
       el.style.left = `${x}px`;
       el.style.top = `${y}px`;
-      el.style.width = '120px';
-      el.style.height = '40px';
-      el.style.backgroundColor = type === 'text' ? '#ffffff' : '#e0e0e0';
-      el.style.color = '#000000';
+      el.style.width = `${width}px`;
+      el.style.height = `${height}px`;
+      el.style.borderRadius = '8px';
+      el.style.padding = '12px';
+      el.style.display = 'flex';
+      el.style.alignItems = 'center';
+      el.style.justifyContent = 'center';
 
-      // 内部要素が親サイズ(100%)に追従するようにスタイル設定
-      switch (type) {
-        case 'button':
-          el.innerHTML = `<button style="pointer-events: none; width: 100%; height: 100%; border: none; background: transparent; color: inherit;">ボタン</button>`;
-          break;
-        case 'input':
-          el.innerHTML = `<input type="text" placeholder="入力欄" style="pointer-events: none; width: 100%; height: 100%; border: none; background: transparent; color: inherit; box-sizing: border-box; padding: 0 8px;">`;
-          break;
-        case 'text':
-          el.innerText = 'テキスト';
-          break;
+      // Type specific defaults
+      let innerHTML = '';
+      if (type === 'button') {
+        el.style.backgroundColor = '#3b82f6';
+        el.style.color = '#ffffff';
+        el.style.width = '140px';
+        el.style.height = '45px';
+        innerHTML = `<span class="canvas-text-node">Click Action</span>`;
+      } else if (type === 'heading') {
+        el.style.backgroundColor = 'transparent';
+        el.style.color = '#0f172a';
+        el.style.fontSize = '24px';
+        el.style.fontWeight = '700';
+        innerHTML = `<span class="canvas-text-node">Section Heading</span>`;
+      } else if (type === 'hero') {
+        el.style.backgroundColor = '#8b5cf6';
+        el.style.color = '#ffffff';
+        innerHTML = `<span class="canvas-text-node">🚀 Hero Title & CTA Banner</span>`;
+      } else if (type === 'badge') {
+        el.style.backgroundColor = '#10b981';
+        el.style.color = '#ffffff';
+        el.style.width = '100px';
+        el.style.height = '30px';
+        el.style.borderRadius = '20px';
+        innerHTML = `<span class="canvas-text-node">NEW</span>`;
+      } else {
+        el.style.backgroundColor = '#f1f5f9';
+        el.style.color = '#334155';
+        el.style.border = '1px solid #cbd5e1';
+        innerHTML = `<span class="canvas-text-node">${type.toUpperCase()} Component</span>`;
       }
 
-      // クリック（ドラッグ開始）時のイベント
-      el.addEventListener('mousedown', (e) => {
-        // イベントの伝播を止める（キャンバスの選択解除を防止）
-        e.stopPropagation();
-        
-        // 要素を選択状態にする
-        selectElement(el);
+      // Add Resize Handles & Toolbar
+      el.innerHTML = innerHTML + `
+        <div class="floating-toolbar">
+          <button class="floating-tool-btn" onclick="duplicateSelected()"><i class="fa-solid fa-copy"></i></button>
+          <button class="floating-tool-btn" onclick="deleteSelected()"><i class="fa-solid fa-trash"></i></button>
+        </div>
+        <div class="resize-handle handle-nw" data-handle="nw"></div>
+        <div class="resize-handle handle-ne" data-handle="ne"></div>
+        <div class="resize-handle handle-sw" data-handle="sw"></div>
+        <div class="resize-handle handle-se" data-handle="se"></div>
+      `;
 
-        // ドラッグの準備
-        isDragging = true;
-        dragTarget = el;
-        const rect = el.getBoundingClientRect();
-        offsetX = e.clientX - rect.left;
-        offsetY = e.clientY - rect.top;
+      // Event listeners for dragging & resizing
+      el.addEventListener('mousedown', (e) => {
+        if (e.target.classList.contains('resize-handle')) {
+          startResizing(e, el, e.target.dataset.handle);
+        } else {
+          selectElement(el);
+          startDragging(e, el);
+        }
       });
 
-      previewArea.appendChild(el);
-      
-      // 配置した直後に選択状態にする
+      canvas.appendChild(el);
       selectElement(el);
+      return el;
     }
 
-    // ==========================================
-    // 3. 選択状態の管理とプロパティの反映
-    // ==========================================
+    // Element Selection & Property Panel Sync
     function selectElement(el) {
-      // 以前の選択を解除
-      if (selectedElement) {
-        selectedElement.classList.remove('selected');
-      }
-      
+      if (selectedElement) selectedElement.classList.remove('selected');
       selectedElement = el;
-      selectedElement.classList.add('selected');
-      
-      // プロパティパネルの表示切替
-      noSelectionMsg.style.display = 'none';
-      propertyControls.style.display = 'block';
+      if (!selectedElement) return;
 
-      // プロパティパネルの値を現在の要素のものに更新
-      updatePropertyPanelValues();
+      selectedElement.classList.add('selected');
+      document.getElementById('no-prop-selected').style.display = 'none';
+      document.getElementById('prop-controls-form').style.display = 'block';
+      document.getElementById('selected-type-badge').innerText = el.dataset.type.toUpperCase();
+
+      // Sync form fields
+      const textNode = el.querySelector('.canvas-text-node');
+      document.getElementById('prop-text-input').value = textNode ? textNode.innerText : '';
+      document.getElementById('prop-width').value = parseInt(el.style.width) || el.offsetWidth;
+      document.getElementById('prop-height').value = parseInt(el.style.height) || el.offsetHeight;
+      document.getElementById('prop-bg-color').value = rgbToHex(el.style.backgroundColor);
+      document.getElementById('prop-text-color').value = rgbToHex(el.style.color);
+      document.getElementById('prop-font-size').value = parseInt(el.style.fontSize) || 14;
+      document.getElementById('prop-border-radius').value = parseInt(el.style.borderRadius) || 8;
+      document.getElementById('prop-padding').value = parseInt(el.style.padding) || 12;
     }
 
-    // 何もないキャンバスをクリックしたら選択解除
-    previewArea.addEventListener('mousedown', (e) => {
-      if (e.target === previewArea && selectedElement) {
-        selectedElement.classList.remove('selected');
+    canvas.addEventListener('mousedown', (e) => {
+      if (e.target === canvas) {
+        if (selectedElement) selectedElement.classList.remove('selected');
         selectedElement = null;
-        noSelectionMsg.style.display = 'block';
-        propertyControls.style.display = 'none';
+        document.getElementById('no-prop-selected').style.display = 'block';
+        document.getElementById('prop-controls-form').style.display = 'none';
+        document.getElementById('selected-type-badge').innerText = 'None';
       }
     });
 
-    // ==========================================
-    // 4. 再ドラッグ移動処理
-    // ==========================================
-    document.addEventListener('mousemove', (e) => {
-      if (!isDragging || !dragTarget) return;
-      
-      const canvasRect = previewArea.getBoundingClientRect();
-      let newX = e.clientX - canvasRect.left - offsetX;
-      let newY = e.clientY - canvasRect.top - offsetY;
+    // Update Property from Inspector Form
+    function updateSelectedProp(key, value) {
+      if (!selectedElement) return;
+      const textNode = selectedElement.querySelector('.canvas-text-node');
 
-      // キャンバスからはみ出さない制限
-      const maxX = canvasRect.width - dragTarget.offsetWidth;
-      const maxY = canvasRect.height - dragTarget.offsetHeight;
-      dragTarget.style.left = `${Math.max(0, Math.min(newX, maxX))}px`;
-      dragTarget.style.top = `${Math.max(0, Math.min(newY, maxY))}px`;
+      if (key === 'text' && textNode) textNode.innerText = value;
+      else if (key === 'width') selectedElement.style.width = `${value}px`;
+      else if (key === 'height') selectedElement.style.height = `${value}px`;
+      else if (key === 'bgColor') selectedElement.style.backgroundColor = value;
+      else if (key === 'textColor') selectedElement.style.color = value;
+      else if (key === 'fontSize') selectedElement.style.fontSize = `${value}px`;
+      else if (key === 'borderRadius') selectedElement.style.borderRadius = `${value}px`;
+      else if (key === 'padding') selectedElement.style.padding = `${value}px`;
+    }
+
+    // Dragging Logic
+    function startDragging(e, el) {
+      e.stopPropagation();
+      isDragging = true;
+      const rect = el.getBoundingClientRect();
+      dragOffsetX = e.clientX - rect.left;
+      dragOffsetY = e.clientY - rect.top;
+    }
+
+    // Resizing Logic
+    function startResizing(e, el, handle) {
+      e.stopPropagation();
+      isResizing = true;
+      currentResizeHandle = handle;
+      startMouseX = e.clientX;
+      startMouseY = e.clientY;
+      initialWidth = el.offsetWidth;
+      initialHeight = el.offsetHeight;
+      initialLeft = el.offsetLeft;
+      initialTop = el.offsetTop;
+    }
+
+    document.addEventListener('mousemove', (e) => {
+      if (isDragging && selectedElement) {
+        const canvasRect = canvas.getBoundingClientRect();
+        let newX = e.clientX - canvasRect.left - dragOffsetX;
+        let newY = e.clientY - canvasRect.top - dragOffsetY;
+
+        newX = Math.max(0, Math.min(newX, canvasRect.width - selectedElement.offsetWidth));
+        newY = Math.max(0, Math.min(newY, canvasRect.height - selectedElement.offsetHeight));
+
+        selectedElement.style.left = `${newX}px`;
+        selectedElement.style.top = `${newY}px`;
+      } else if (isResizing && selectedElement) {
+        const deltaX = e.clientX - startMouseX;
+        const deltaY = e.clientY - startMouseY;
+
+        if (currentResizeHandle.includes('e')) {
+          selectedElement.style.width = `${Math.max(40, initialWidth + deltaX)}px`;
+        }
+        if (currentResizeHandle.includes('s')) {
+          selectedElement.style.height = `${Math.max(30, initialHeight + deltaY)}px`;
+        }
+        if (currentResizeHandle.includes('w')) {
+          const newW = initialWidth - deltaX;
+          if (newW > 40) {
+            selectedElement.style.width = `${newW}px`;
+            selectedElement.style.left = `${initialLeft + deltaX}px`;
+          }
+        }
+        if (currentResizeHandle.includes('n')) {
+          const newH = initialHeight - deltaY;
+          if (newH > 30) {
+            selectedElement.style.height = `${newH}px`;
+            selectedElement.style.top = `${initialTop + deltaY}px`;
+          }
+        }
+
+        // Sync sizes back to panel
+        document.getElementById('prop-width').value = selectedElement.offsetWidth;
+        document.getElementById('prop-height').value = selectedElement.offsetHeight;
+      }
     });
 
     document.addEventListener('mouseup', () => {
       isDragging = false;
-      dragTarget = null;
+      isResizing = false;
+      currentResizeHandle = null;
     });
 
-    // ==========================================
-    // 5. プロパティ変更イベント（パネル → 要素）
-    // ==========================================
-    const propText = document.getElementById('prop-text');
-    const propWidth = document.getElementById('prop-width');
-    const propHeight = document.getElementById('prop-height');
-    const propBgColor = document.getElementById('prop-bgcolor');
-    const propColor = document.getElementById('prop-color');
-
-    // パネルに現在の要素の値をセットする関数
-    function updatePropertyPanelValues() {
+    function duplicateSelected() {
       if (!selectedElement) return;
-
-      // テキストの取得（要素によって場所が違う）
       const type = selectedElement.dataset.type;
-      if (type === 'button') propText.value = selectedElement.querySelector('button').innerText;
-      else if (type === 'input') propText.value = selectedElement.querySelector('input').placeholder;
-      else propText.value = selectedElement.innerText;
-
-      // スタイルの取得（pxを外して数値化）
-      propWidth.value = parseInt(selectedElement.style.width);
-      propHeight.value = parseInt(selectedElement.style.height);
-      
-      // 色の取得（RGB形式をHEXに変換する簡易処理、初期設定がHEXなのでそのままセット）
-      // ※本格的にやる場合は rgb(r, g, b) を #rrggbb に変換する関数が必要です
-      propBgColor.value = rgbToHex(selectedElement.style.backgroundColor);
-      propColor.value = rgbToHex(selectedElement.style.color);
+      const x = selectedElement.offsetLeft + 20;
+      const y = selectedElement.offsetTop + 20;
+      const w = selectedElement.offsetWidth;
+      const h = selectedElement.offsetHeight;
+      const clone = createElement(type, x, y, w, h);
+      clone.style.backgroundColor = selectedElement.style.backgroundColor;
+      clone.style.color = selectedElement.style.color;
     }
 
-    // パネルの入力値が変わった時の処理
-    propText.addEventListener('input', (e) => {
-      if (!selectedElement) return;
-      const type = selectedElement.dataset.type;
-      const text = e.target.value;
-      if (type === 'button') selectedElement.querySelector('button').innerText = text;
-      else if (type === 'input') selectedElement.querySelector('input').placeholder = text;
-      else selectedElement.innerText = text;
-    });
+    function deleteSelected() {
+      if (selectedElement) {
+        selectedElement.remove();
+        selectedElement = null;
+        document.getElementById('no-prop-selected').style.display = 'block';
+        document.getElementById('prop-controls-form').style.display = 'none';
+      }
+    }
 
-    ['input', 'change'].forEach(evt => {
-      propWidth.addEventListener(evt, (e) => { if(selectedElement) selectedElement.style.width = `${e.target.value}px`; });
-      propHeight.addEventListener(evt, (e) => { if(selectedElement) selectedElement.style.height = `${e.target.value}px`; });
-      propBgColor.addEventListener(evt, (e) => { if(selectedElement) selectedElement.style.backgroundColor = e.target.value; });
-      propColor.addEventListener(evt, (e) => { if(selectedElement) selectedElement.style.color = e.target.value; });
-    });
+    function clearCanvas() {
+      canvas.innerHTML = '';
+      showToast("キャンバスをクリアしました");
+    }
 
-    // ユーティリティ: rgb(255,255,255) を #ffffff に変換
+    // ==========================================
+    // Simulator & External Web Page Proxy
+    // ==========================================
+    function setPresetURL(url) {
+      document.getElementById('sim-url-input').value = url;
+      loadExternalURL();
+    }
+
+    function loadExternalURL() {
+      const url = document.getElementById('sim-url-input').value.trim();
+      if (!url) return;
+
+      showToast("Webページを取得中...");
+      switchMainMode('simulator');
+
+      if (typeof google !== 'undefined' && google.script && google.script.run) {
+        google.script.run
+          .withSuccessHandler(onUrlFetchedSuccess)
+          .withFailureHandler(onUrlFetchError)
+          .fetchExternalUrl(url);
+      } else {
+        // Fallback for local testing
+        simIframe.srcdoc = `<h2 style="font-family: sans-serif; padding: 20px;">GAS環境以外でのローカルプレビュー: ${url}</h2>`;
+      }
+    }
+
+    function onUrlFetchedSuccess(res) {
+      if (res.success) {
+        simIframe.srcdoc = res.content;
+        showToast("Webページを表示しました！");
+        
+        // Setup Inspector listener inside iframe
+        setTimeout(() => {
+          try {
+            const doc = simIframe.contentDocument || simIframe.contentWindow.document;
+            doc.addEventListener('click', (e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              const el = e.target;
+              inspectedElementData = {
+                tag: el.tagName.toLowerCase(),
+                className: el.className || 'none',
+                text: el.innerText ? el.innerText.trim().slice(0, 50) : 'No text',
+                bgColor: getComputedStyle(el).backgroundColor,
+                color: getComputedStyle(el).color
+              };
+              
+              document.getElementById('inspector-result-box').style.display = 'block';
+              document.getElementById('insp-tag').innerText = inspectedElementData.tag;
+              document.getElementById('insp-class').innerText = inspectedElementData.className;
+              document.getElementById('insp-text').innerText = inspectedElementData.text;
+            });
+          } catch(err) {
+            console.log("Iframe inspect limited: " + err);
+          }
+        }, 500);
+      } else {
+        showToast(res.message);
+      }
+    }
+
+    function onUrlFetchError(err) {
+      showToast("エラー: " + err.message);
+    }
+
+    function importInspectedToCanvas() {
+      if (!inspectedElementData) return;
+      const el = createElement('card', 50, 50, 240, 100);
+      const textNode = el.querySelector('.canvas-text-node');
+      if (textNode) textNode.innerText = inspectedElementData.text;
+      el.style.backgroundColor = inspectedElementData.bgColor || '#ffffff';
+      el.style.color = inspectedElementData.color || '#000000';
+      showToast("要素をキャンバスにインポートしました！");
+      switchMainMode('canvas');
+    }
+
+    // ==========================================
+    // Save & Load State with GAS PropertiesService
+    // ==========================================
+    function saveLayoutToGAS() {
+      const elementsData = [];
+      document.querySelectorAll('.canvas-el').forEach(el => {
+        const textNode = el.querySelector('.canvas-text-node');
+        elementsData.push({
+          type: el.dataset.type,
+          left: el.offsetLeft,
+          top: el.offsetTop,
+          width: el.offsetWidth,
+          height: el.offsetHeight,
+          bgColor: el.style.backgroundColor,
+          color: el.style.color,
+          text: textNode ? textNode.innerText : ''
+        });
+      });
+
+      const json = JSON.stringify(elementsData);
+
+      if (typeof google !== 'undefined' && google.script && google.script.run) {
+        google.script.run
+          .withSuccessHandler(res => showToast(res.message))
+          .saveUIData(json);
+      } else {
+        localStorage.setItem('saved_ui_layout', json);
+        showToast("ローカルストレージに保存しました。");
+      }
+    }
+
+    function loadLayoutFromGAS() {
+      if (typeof google !== 'undefined' && google.script && google.script.run) {
+        google.script.run
+          .withSuccessHandler(res => {
+            if (res.success && res.data) renderCanvasFromJSON(res.data);
+            else showToast("保存されたデータがありません");
+          })
+          .loadUIData();
+      } else {
+        const json = localStorage.getItem('saved_ui_layout');
+        if (json) renderCanvasFromJSON(json);
+      }
+    }
+
+    function renderCanvasFromJSON(jsonStr) {
+      canvas.innerHTML = '';
+      const data = JSON.parse(jsonStr);
+      data.forEach(item => {
+        const el = createElement(item.type, item.left, item.top, item.width, item.height);
+        el.style.backgroundColor = item.bgColor;
+        el.style.color = item.color;
+        const textNode = el.querySelector('.canvas-text-node');
+        if (textNode) textNode.innerText = item.text;
+      });
+      showToast("レイアウトを復元しました！");
+    }
+
+    // ==========================================
+    // Output Generator for IDE Prompting
+    // ==========================================
+    function openExportModal() {
+      document.getElementById('export-modal').style.display = 'flex';
+      switchModalTab('prompt');
+    }
+
+    function closeExportModal() {
+      document.getElementById('export-modal').style.display = 'none';
+    }
+
+    function switchModalTab(tab) {
+      document.getElementById('mtab-prompt').classList.toggle('active', tab === 'prompt');
+      document.getElementById('mtab-html').classList.toggle('active', tab === 'html');
+      document.getElementById('mtab-json').classList.toggle('active', tab === 'json');
+
+      const codeArea = document.getElementById('modal-code-area');
+
+      if (tab === 'prompt') {
+        codeArea.value = generateIDEPrompt();
+      } else if (tab === 'html') {
+        codeArea.value = generateCleanHTML();
+      } else if (tab === 'json') {
+        codeArea.value = generateJSONSpec();
+      }
+    }
+
+    function generateIDEPrompt() {
+      const els = document.querySelectorAll('.canvas-el');
+      let promptText = `# Web Application UI Specification & Implementation Request\n\n`;
+      promptText += `Please build a responsive, high-quality Web UI matching the following visual design layout specification.\n\n`;
+      promptText += `## Design Specifications & Component Hierarchy:\n`;
+
+      els.forEach((el, index) => {
+        const textNode = el.querySelector('.canvas-text-node');
+        const text = textNode ? textNode.innerText : '';
+        promptText += `\n### ${index + 1}. [${el.dataset.type.toUpperCase()}] ${text}\n`;
+        promptText += `- Position: x: ${el.offsetLeft}px, y: ${el.offsetTop}px\n`;
+        promptText += `- Size: width: ${el.offsetWidth}px, height: ${el.offsetHeight}px\n`;
+        promptText += `- Background Color: ${el.style.backgroundColor}\n`;
+        promptText += `- Text Color: ${el.style.color}\n`;
+      });
+
+      promptText += `\n## Implementation Guidelines for IDE:\n`;
+      promptText += `1. Use standard semantic HTML5 elements and flex/grid layout principles.\n`;
+      promptText += `2. Ensure typography uses modern sans-serif fonts (e.g. Inter/Outfit).\n`;
+      promptText += `3. Include subtle animations and responsive adaptations for mobile viewports.\n`;
+
+      return promptText;
+    }
+
+    function generateCleanHTML() {
+      let html = `<!-- Generated by GAS UI Designer -->\n<div class="ui-container" style="position: relative; width: 100%; min-height: 700px; background: #ffffff;">\n`;
+      document.querySelectorAll('.canvas-el').forEach(el => {
+        const textNode = el.querySelector('.canvas-text-node');
+        const text = textNode ? textNode.innerText : '';
+        html += `  <div style="position: absolute; left: ${el.offsetLeft}px; top: ${el.offsetTop}px; width: ${el.offsetWidth}px; height: ${el.offsetHeight}px; background-color: ${el.style.backgroundColor}; color: ${el.style.color}; border-radius: 8px; padding: 12px; display: flex; align-items: center; justify-content: center;">\n`;
+        html += `    <span>${text}</span>\n`;
+        html += `  </div>\n`;
+      });
+      html += `</div>\n`;
+      return html;
+    }
+
+    function generateJSONSpec() {
+      const data = [];
+      document.querySelectorAll('.canvas-el').forEach(el => {
+        const textNode = el.querySelector('.canvas-text-node');
+        data.push({
+          type: el.dataset.type,
+          x: el.offsetLeft,
+          y: el.offsetTop,
+          w: el.offsetWidth,
+          h: el.offsetHeight,
+          bgColor: el.style.backgroundColor,
+          color: el.style.color,
+          text: textNode ? textNode.innerText : ''
+        });
+      });
+      return JSON.stringify(data, null, 2);
+    }
+
+    function copyModalCode() {
+      const area = document.getElementById('modal-code-area');
+      area.select();
+      document.execCommand('copy');
+      showToast("クリップボードにコピーしました！");
+    }
+
+    // Helper functions
     function rgbToHex(rgbStr) {
-      if (!rgbStr) return '#000000';
+      if (!rgbStr) return '#ffffff';
       if (rgbStr.startsWith('#')) return rgbStr;
       const rgb = rgbStr.match(/\d+/g);
-      if (!rgb || rgb.length < 3) return '#000000';
+      if (!rgb || rgb.length < 3) return '#ffffff';
       return "#" + (1 << 24 | rgb[0] << 16 | rgb[1] << 8 | rgb[2]).toString(16).slice(1);
+    }
+
+    function showToast(msg) {
+      const toast = document.getElementById('toast-msg');
+      document.getElementById('toast-text').innerText = msg;
+      toast.classList.add('show');
+      setTimeout(() => toast.classList.remove('show'), 3000);
     }
   </script>
 </body>
