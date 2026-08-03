@@ -268,7 +268,7 @@
       color: var(--accent-blue);
     }
 
-    /* Simulator Panel */
+    /* Simulator Panel Controls */
     .simulator-controls {
       display: flex;
       flex-direction: column;
@@ -718,6 +718,16 @@
         <!-- Webシミュレーター・インスペクタータブ -->
         <div id="content-simulator" style="display: none;">
           <div class="simulator-controls">
+            <div class="palette-title">シミュレーター動作モード</div>
+            <div class="view-mode-tabs" style="margin-bottom: 12px; width: 100%;">
+              <button class="mode-tab-btn active" id="btn-sim-mode-interact" style="flex: 1; justify-content: center; font-size: 0.75rem;" onclick="setSimulatorMode('interact')">
+                <i class="fa-solid fa-hand-pointer"></i> 操作モード
+              </button>
+              <button class="mode-tab-btn" id="btn-sim-mode-inspect" style="flex: 1; justify-content: center; font-size: 0.75rem;" onclick="setSimulatorMode('inspect')">
+                <i class="fa-solid fa-crosshairs"></i> 編集・抽出
+              </button>
+            </div>
+
             <div class="palette-title">対象のWebページURL</div>
             <div class="input-group">
               <input type="text" id="sim-url-input" class="input-text" placeholder="https://example.com">
@@ -875,6 +885,8 @@
     let startMouseY = 0;
 
     let inspectedElementData = null;
+    let simulatorMode = 'interact'; // 'interact' or 'inspect'
+    let lastHoveredElement = null;
 
     window.addEventListener('DOMContentLoaded', () => {
       setupDragAndDrop();
@@ -936,6 +948,30 @@
       document.getElementById('tab-simulator').classList.toggle('active', tab === 'simulator');
       document.getElementById('content-palette').style.display = tab === 'palette' ? 'block' : 'none';
       document.getElementById('content-simulator').style.display = tab === 'simulator' ? 'block' : 'none';
+    }
+
+    // シミュレーターの「操作モード」/「編集・抽出モード」切替
+    function setSimulatorMode(mode) {
+      simulatorMode = mode;
+      document.getElementById('btn-sim-mode-interact').classList.toggle('active', mode === 'interact');
+      document.getElementById('btn-sim-mode-inspect').classList.toggle('active', mode === 'inspect');
+
+      if (mode === 'interact') {
+        showToast("操作モード: ページの操作・クリックが可能です");
+        removeIframeInspectHighlights();
+      } else {
+        showToast("編集・抽出モード: マウスオーバーで要素を抽出できます");
+      }
+    }
+
+    function removeIframeInspectHighlights() {
+      try {
+        const doc = simIframe.contentDocument || simIframe.contentWindow.document;
+        if (lastHoveredElement) {
+          lastHoveredElement.style.outline = '';
+          lastHoveredElement = null;
+        }
+      } catch(e){}
     }
 
     function setupDragAndDrop() {
@@ -1248,7 +1284,28 @@
         setTimeout(() => {
           try {
             const doc = simIframe.contentDocument || simIframe.contentWindow.document;
+
+            doc.addEventListener('mouseover', (e) => {
+              if (simulatorMode !== 'inspect') return;
+              if (lastHoveredElement && lastHoveredElement !== e.target) {
+                lastHoveredElement.style.outline = '';
+              }
+              lastHoveredElement = e.target;
+              lastHoveredElement.style.outline = '2px dashed #3b82f6';
+            });
+
+            doc.addEventListener('mouseout', (e) => {
+              if (simulatorMode !== 'inspect') return;
+              if (e.target) e.target.style.outline = '';
+            });
+
             doc.addEventListener('click', (e) => {
+              if (simulatorMode === 'interact') {
+                // 操作モード時は通常のリンク遷移・ボタン操作を許可
+                return;
+              }
+
+              // 編集・抽出モード時はクリックイベントを横取りして解析
               e.preventDefault();
               e.stopPropagation();
               const el = e.target;
